@@ -1,6 +1,7 @@
 package com.example.riberrepublicfichajeapi.controller;
 
-import com.example.riberrepublicfichajeapi.dto.HorarioDTO;
+import com.example.riberrepublicfichajeapi.dto.HorarioHoyDTO;
+import com.example.riberrepublicfichajeapi.dto.LoginRequestDTO;
 import com.example.riberrepublicfichajeapi.dto.UsuarioDTO;
 import com.example.riberrepublicfichajeapi.model.Grupo;
 import com.example.riberrepublicfichajeapi.model.Horario;
@@ -12,12 +13,13 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -49,6 +51,81 @@ public class UsuarioController {
         }
     }
 
+    @PostMapping("/login")
+    @Operation(summary = "Login de usuario", description = "Permite iniciar sesión con email y contraseña")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Login exitoso"),
+            @ApiResponse(responseCode = "401", description = "Credenciales inválidas"),
+            @ApiResponse(responseCode = "400", description = "Error de solicitud")
+    })
+    public ResponseEntity<Usuario> login(@RequestBody LoginRequestDTO loginRequest) {
+        try {
+            Usuario usuario = usuarioService.login(loginRequest.getEmail(), loginRequest.getContrasena());
+            if (usuario != null) {
+                return ResponseEntity.ok(usuario);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error en el login", e);
+        }
+    }
+
+    @GetMapping("/{idUsuario}/horarioHoy")
+    @Operation(summary = "Obtener el horario del día para el usuario", description = "Devuelve el horario (hora entrada/salida, horas estimadas) correspondiente al grupo del usuario y el día actual.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Horario encontrado"),
+            @ApiResponse(responseCode = "404", description = "No se encontró horario para este grupo hoy")
+    })
+    public ResponseEntity<?> getHorarioDeHoy(@PathVariable int idUsuario) {
+        try {
+            Usuario usuario = usuarioService.obtenerUsuarioPorIdd(idUsuario);
+            if (usuario == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+            }
+
+            Grupo grupo = usuario.getGrupo();
+            if (grupo == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El usuario no tiene grupo asignado");
+            }
+
+            DayOfWeek diaSemana = LocalDate.now().getDayOfWeek();
+            Horario.Dia diaEnum = switch (diaSemana) {
+                case MONDAY -> Horario.Dia.lunes;
+                case TUESDAY -> Horario.Dia.martes;
+                case WEDNESDAY -> Horario.Dia.miercoles;
+                case THURSDAY -> Horario.Dia.jueves;
+                case FRIDAY -> Horario.Dia.viernes;
+                default -> null;
+            };
+
+            if (diaEnum == null) {
+                return ResponseEntity.ok("Hoy no hay horario definido");
+            }
+
+            Horario horario = grupoService.obtenerHorarioPorGrupoYDia(grupo.getId(), diaEnum);
+            if (horario == null) {
+                return ResponseEntity.ok("No hay horario para este grupo hoy");
+            }
+
+            java.time.Duration duracion = java.time.Duration.between(horario.getHoraEntrada(), horario.getHoraSalida());
+            String horasEstimadas = String.format("%02d:%02d:%02d",
+                    duracion.toHours(),
+                    duracion.toMinutesPart(),
+                    duracion.toSecondsPart());
+
+            return ResponseEntity.ok(new HorarioHoyDTO(
+                    horario.getHoraEntrada().toString(),
+                    horario.getHoraSalida().toString(),
+                    horasEstimadas
+            ));
+
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error al obtener el horario", e);
+        }
+    }
+
+
     @PostMapping("/nuevoUsuario")
     @Operation(summary = "Crear un nuevo usuario", description = "Crear un nuevo usuario")
     @ApiResponses(value = {
@@ -69,7 +146,7 @@ public class UsuarioController {
                 usuario.setApellido1(usuarioDTO.getApellido1());
                 usuario.setApellido2(usuarioDTO.getApellido2());
                 usuario.setEmail(usuarioDTO.getEmail());
-                usuario.setContraseña(usuarioDTO.getContraseña());
+                usuario.setContrasena(usuarioDTO.getContrasena());
                 usuario.setRol(Usuario.Rol.valueOf(usuarioDTO.getRol()));
                 usuario.setEstado(Usuario.Estado.valueOf(usuarioDTO.getEstado()));
 

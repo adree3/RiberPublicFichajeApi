@@ -22,6 +22,16 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
+    public Usuario login(String email, String contrasena) {
+        Usuario usuario = usuarioRepository.findByEmail(email);
+        if (usuario != null && usuario.getContrasena().equals(contrasena)) {
+            return usuario;
+        } else {
+            return null;
+        }
+    }
+
+
     public UsuarioDTO editarUsuario(int id, UsuarioDTO usuarioDTO) {
         Usuario usuarioExistente = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));

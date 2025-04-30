@@ -25,7 +25,7 @@ public class Usuario {
     private String email;
 
     @Column(length = 255)
-    private String contraseña;
+    private String contrasena;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -51,13 +51,13 @@ public class Usuario {
     public Usuario() {
     }
 
-    public Usuario(Integer id, String nombre, String apellido1, String apellido2, String email, String contraseña, Rol rol, Estado estado, Grupo grupo) {
+    public Usuario(Integer id, String nombre, String apellido1, String apellido2, String email, String contrasena, Rol rol, Estado estado, Grupo grupo) {
         this.id = id;
         this.nombre = nombre;
         this.apellido1 = apellido1;
         this.apellido2 = apellido2;
         this.email = email;
-        this.contraseña = contraseña;
+        this.contrasena = contrasena;
         this.rol = rol;
         this.estado = estado;
         this.grupo = grupo;
@@ -103,12 +103,12 @@ public class Usuario {
         this.email = email;
     }
 
-    public String getContraseña() {
-        return contraseña;
+    public String getContrasena() {
+        return contrasena;
     }
 
-    public void setContraseña(String contraseña) {
-        this.contraseña = contraseña;
+    public void setContrasena(String contrasena) {
+        this.contrasena = contrasena;
     }
 
     public Rol getRol() {

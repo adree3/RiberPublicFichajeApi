@@ -1,12 +1,13 @@
 package com.example.riberrepublicfichajeapi.service;
 
-import com.example.riberrepublicfichajeapi.dto.FichajeDTO;
 import com.example.riberrepublicfichajeapi.mapper.FichajeMapper;
 import com.example.riberrepublicfichajeapi.model.Fichaje;
+import com.example.riberrepublicfichajeapi.model.Usuario;
 import com.example.riberrepublicfichajeapi.repository.FichajeRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class FichajeService {
@@ -19,21 +20,24 @@ public class FichajeService {
         this.fichajeMapper = fichajeMapper;
     }
 
-    public void crearFichaje(Fichaje fichaje) {
-        fichajeRepository.save(fichaje);
+    public List<Fichaje> getFichajes() {
+        return fichajeRepository.findAll();
     }
 
-//    public FichajeDTO editarFichaje(FichajeDTO fichajeDTO) {
-//        Fichaje fichajeExistente = fichajeRepository.findById(fichajeDTO.getId())
-//                .orElseThrow(() -> new RuntimeException("Fichaje no encontrado"));
-//        fichajeExistente.setFechaHoraEntrada(fichajeDTO.getFechaHoraEntrada());
-//        fichajeExistente.setFechaHoraSalida(fichajeDTO.getFechaHoraEntrada());
-//        fichajeExistente.setUbicacion(fichajeDTO.getUbicacion());
-//        fichajeExistente.setNfcUsado(fichajeDTO.isNfcUsado());
-//
-//        Fichaje fichajeActualizado= fichajeRepository.save(fichajeExistente);
-//        return fichajeMapper.toDTO(fichajeActualizado);
-//    }
+    public List<Fichaje> getFichajesPorUsuario(Usuario usuario) {
+        return fichajeRepository.findFichajesByUsuario(usuario);
+    }
+
+    public Optional<Fichaje> getFichajeById(int id) {
+        return fichajeRepository.findById(id);
+    }
+
+    public Fichaje crearFichaje(Fichaje fichaje) {
+        fichajeRepository.save(fichaje);
+        return fichaje;
+    }
+
+
 
     public void eliminarFichaje(int id) {
         if (fichajeRepository.existsById(id)){
@@ -43,7 +47,5 @@ public class FichajeService {
         }
     }
 
-    public List<Fichaje> getFichajes() {
-        return fichajeRepository.findAll();
-    }
+
 }

@@ -14,7 +14,7 @@ CREATE TABLE usuarios (
     apellido1 varchar(30) not null,
     apellido2 varchar(30),
     email varchar(40) unique not null,
-    contraseña varchar(255) not null,
+    contrasena varchar(255) not null,
     rol ENUM('empleado', 'jefe') default 'empleado',
 	grupo_id int, 
     estado ENUM('activo', 'inactivo') default 'activo',
@@ -44,7 +44,7 @@ CREATE TABLE ausencias (
     id int auto_increment primary key,
     usuario_id int not null,
     fecha date not null,
-    motivo ENUM('falta_injustificada', 'enfermedad', 'vacaciones', 'permiso', 'retraso') DEFAULT 'falta injustificada',
+    motivo ENUM('falta_injustificada', 'enfermedad', 'vacaciones', 'permiso', 'retraso') DEFAULT 'falta_injustificada',
     justificada boolean default false,
     detalles varchar(255),
     tiempo_registrado TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -56,12 +56,13 @@ INSERT INTO grupos (nombre, faltas_totales) VALUES
 ('Marketing', 0),
 ('Administración', 0);
 
-INSERT INTO usuarios (nombre, apellido1, apellido2, email, contraseña, rol, grupo_id, estado) VALUES 
+INSERT INTO usuarios (nombre, apellido1, apellido2, email, contrasena, rol, grupo_id, estado) VALUES
 ('Juan', 'Pérez', 'Gómez', 'juan.perez@example.com', 'hashedpassword1', 'jefe', 1, 'activo'),
 ('María', 'López', 'Fernández', 'maria.lopez@example.com', 'hashedpassword2', 'empleado', 1, 'activo'),
 ('Carlos', 'Ruiz', 'Martínez', 'carlos.ruiz@example.com', 'hashedpassword3', 'empleado', 2, 'activo'),
 ('Laura', 'Sánchez', NULL, 'laura.sanchez@example.com', 'hashedpassword4', 'empleado', 2, 'activo'),
-('Pedro', 'García', 'Núñez', 'pedro.garcia@example.com', 'hashedpassword5', 'jefe', 3, 'activo');
+('Pedro', 'García', 'Núñez', 'pedro.garcia@example.com', 'hashedpassword5', 'jefe', 3, 'activo'),
+('Adrian', 'Alonso', 'Perez', 'adrian', 'a', 'jefe', 3, 'activo');
 
 INSERT INTO horarios (grupo_id, dia, hora_entrada, hora_salida) VALUES 
 (1, 'lunes', '09:00:00', '17:00:00'),
@@ -72,6 +73,8 @@ INSERT INTO horarios (grupo_id, dia, hora_entrada, hora_salida) VALUES
 
 INSERT INTO fichajes (usuario_id, fecha_hora_entrada, fecha_hora_salida, ubicacion, nfc_usado) VALUES 
 (1, '2025-04-01 09:00:00', '2025-04-01 17:00:00', 'Oficina Principal', TRUE),
+(1, '2025-04-01 09:00:00', '2025-04-01 19:00:00', 'Oficina Principal', TRUE),
+(1, '2025-04-01 09:00:00', '2025-04-01 15:00:00', 'Oficina Principal', TRUE),
 (2, '2025-04-01 09:05:00', '2025-04-01 17:10:00', 'Oficina Principal', FALSE),
 (3, '2025-04-02 10:00:00', '2025-04-02 18:00:00', 'Sucursal Norte', TRUE),
 (4, '2025-04-03 08:30:00', '2025-04-03 16:30:00', 'Sucursal Sur', FALSE);
@@ -79,7 +82,7 @@ INSERT INTO fichajes (usuario_id, fecha_hora_entrada, fecha_hora_salida, ubicaci
 
 INSERT INTO ausencias (usuario_id, fecha, motivo, justificada, detalles) VALUES 
 (2, '2025-04-01', 'enfermedad', TRUE, 'Presentó certificado médico'),
-(3, '2025-04-02', 'falta injustificada', FALSE, 'No se presentó al trabajo'),
+(3, '2025-04-02', 'falta_injustificada', FALSE, 'No se presentó al trabajo'),
 (4, '2025-04-03', 'vacaciones', TRUE, 'Vacaciones aprobadas'),
 (5, '2025-04-04', 'permiso', TRUE, 'Permiso para asuntos personales');
 

@@ -5,12 +5,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Setter
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class GrupoDTO {
-    private String nombre;
-    private int faltasTotales;
-
+public class LoginRequestDTO {
+    private String email;
+    private String contrasena;
 }

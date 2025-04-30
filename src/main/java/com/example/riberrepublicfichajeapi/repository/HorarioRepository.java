@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface HorarioRepository extends JpaRepository<Horario, Integer> {
+    Horario findByGrupoIdAndDia(Integer grupoId, Horario.Dia dia);
 }
