@@ -1,5 +1,6 @@
 package com.example.riberrepublicfichajeapi.service;
 
+import com.example.riberrepublicfichajeapi.dto.TotalHorasHoyDTO;
 import com.example.riberrepublicfichajeapi.mapper.FichajeMapper;
 import com.example.riberrepublicfichajeapi.model.Fichaje;
 import com.example.riberrepublicfichajeapi.model.Usuario;
@@ -8,6 +9,7 @@ import com.example.riberrepublicfichajeapi.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,7 +36,35 @@ public class FichajeService {
         return fichajeRepository.findFichajesByUsuario(usuario);
     }
 
+    public TotalHorasHoyDTO getTotalHorasHoy(int idUsuario) {
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
+        LocalDateTime inicioHoy = LocalDate.now().atStartOfDay();
+        LocalDateTime inicioManana = inicioHoy.plusDays(1);
+
+        List<Fichaje> lista = fichajeRepository
+                .findAllByUsuarioAndFechaHoraEntradaBetween(usuario, inicioHoy, inicioManana);
+
+        LocalDateTime ahora = LocalDateTime.now();
+        Duration total = Duration.ZERO;
+        for (Fichaje fichaje : lista) {
+            LocalDateTime entrada = fichaje.getFechaHoraEntrada();
+            if (entrada == null) {
+                continue;
+            }
+            LocalDateTime salida = fichaje.getFechaHoraSalida() != null
+                    ? fichaje.getFechaHoraSalida()
+                    : ahora;
+            total = total.plus(Duration.between(entrada, salida));
+        }
+        long horas = total.toHours();
+        long minutos = total.toMinutesPart();
+        long segundos = total.toSecondsPart();
+        String formateada = String.format("%02d:%02d:%02d", horas, minutos, segundos);
+
+        return new TotalHorasHoyDTO(formateada);
+    }
 
     public Optional<Fichaje> getFichajeById(int id) {
         return fichajeRepository.findById(id);

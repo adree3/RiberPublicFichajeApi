@@ -1,9 +1,6 @@
 package com.example.riberrepublicfichajeapi.controller;
 
-import com.example.riberrepublicfichajeapi.dto.AusenciaDTO;
-import com.example.riberrepublicfichajeapi.dto.FichajeDTO;
-import com.example.riberrepublicfichajeapi.dto.UsuarioDTO;
-import com.example.riberrepublicfichajeapi.dto.UsuarioFichajeDTO;
+import com.example.riberrepublicfichajeapi.dto.*;
 import com.example.riberrepublicfichajeapi.model.Ausencia;
 import com.example.riberrepublicfichajeapi.model.Fichaje;
 import com.example.riberrepublicfichajeapi.model.Usuario;
@@ -72,22 +69,19 @@ public class FichajeController {
         }
     }
 
-    @GetMapping("/tiempoTrabajadoHoy/{idUsuario}")
-    @Operation(summary = "Obtener fichajes por usuario", description = "Obtener todos los fichajes de un usuario por su ID")
+    @GetMapping("/totalHorasHoy/{idUsuario}")
+    @Operation(summary = "Obtiene el total de horas trabajadas de hoy", description = "Obtiene el total de horas trabajadas de hoy por el id usuario")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista de fichajes obtenida correctamente"),
+            @ApiResponse(responseCode = "200", description = "Horas trabajadas calculadas correctamente"),
             @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
-            @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+            @ApiResponse(responseCode = "404", description = "No se pudo calcular las horas trabajadas")
     })
-    public List<Fichaje> getTiempoTrabajadoHoy(@PathVariable int idUsuario) {
+    public ResponseEntity<TotalHorasHoyDTO> totalHorasHoy(@PathVariable int idUsuario) {
         try {
-            Usuario usuario = usuarioService.obtenerUsuarioPorIdd(idUsuario);
-            if (usuario == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado");
-            }
-            return fichajeService.getFichajesPorUsuario(usuario);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error al obtener fichajes", e);
+            TotalHorasHoyDTO dto = fichajeService.getTotalHorasHoy(idUsuario);
+            return ResponseEntity.ok(dto);
+        } catch (EntityNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
