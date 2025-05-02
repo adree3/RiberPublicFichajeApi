@@ -4,8 +4,12 @@ import com.example.riberrepublicfichajeapi.mapper.FichajeMapper;
 import com.example.riberrepublicfichajeapi.model.Fichaje;
 import com.example.riberrepublicfichajeapi.model.Usuario;
 import com.example.riberrepublicfichajeapi.repository.FichajeRepository;
+import com.example.riberrepublicfichajeapi.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityNotFoundException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,10 +17,12 @@ import java.util.Optional;
 public class FichajeService {
 
     private final FichajeRepository fichajeRepository;
+    private final UsuarioRepository usuarioRepository;
     private final FichajeMapper fichajeMapper;
 
-    public FichajeService(FichajeRepository fichajeRepository, FichajeMapper fichajeMapper) {
+    public FichajeService(FichajeRepository fichajeRepository, UsuarioRepository usuarioRepository, FichajeMapper fichajeMapper) {
         this.fichajeRepository = fichajeRepository;
+        this.usuarioRepository = usuarioRepository;
         this.fichajeMapper = fichajeMapper;
     }
 
@@ -28,6 +34,8 @@ public class FichajeService {
         return fichajeRepository.findFichajesByUsuario(usuario);
     }
 
+
+
     public Optional<Fichaje> getFichajeById(int id) {
         return fichajeRepository.findById(id);
     }
@@ -37,6 +45,49 @@ public class FichajeService {
         return fichaje;
     }
 
+    /**
+     * Abre o reutiliza el fichaje de hoy para este usuario.
+     */
+    public Fichaje abrirOReabrirFichajeHoy(int idUsuario) {
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
+        // Obtengo el dia de hoy
+        LocalDateTime inicioHoy = LocalDate.now().atStartOfDay();
+        LocalDateTime inicioManana = inicioHoy.plusDays(1);
+
+        // Busco el primer fichaje abierto o cerrado de hoy, si no hay lo creo
+        Fichaje fichaje = fichajeRepository.findFirstByUsuarioAndFechaHoraEntradaBetween(usuario, inicioHoy, inicioManana)
+                .orElseGet(() -> {
+                    Fichaje nuevoFichaje = new Fichaje();
+                    nuevoFichaje.setUsuario(usuario);
+                    nuevoFichaje.setFechaHoraEntrada(LocalDateTime.now());
+                    return nuevoFichaje;
+                });
+
+        // Si ya había un fichaje, pero estaba cerrado se reabre
+        if (fichaje.getFechaHoraSalida() != null) {
+            fichaje.setFechaHoraEntrada(LocalDateTime.now());
+            fichaje.setFechaHoraSalida(null);
+        }
+        return fichajeRepository.save(fichaje);
+    }
+
+    public Fichaje cerrarFichajeHoy(int idUsuario) {
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
+        // Obtengo el dia de hoy
+        LocalDateTime inicioHoy = LocalDate.now().atStartOfDay();
+        LocalDateTime inicioManana = inicioHoy.plusDays(1);
+
+        Fichaje fichaje = fichajeRepository.findFirstByUsuarioAndFechaHoraEntradaBetween(usuario, inicioHoy, inicioManana)
+                .orElseThrow(() -> new IllegalStateException("No hay ningún fichaje para hoy"));
+
+        // Cerramos
+        fichaje.setFechaHoraSalida(LocalDateTime.now());
+        return fichajeRepository.save(fichaje);
+    }
 
 
     public void eliminarFichaje(int id) {

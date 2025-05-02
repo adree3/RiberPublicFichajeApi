@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
 @RestController
@@ -56,6 +57,7 @@ public class FichajeController {
     @Operation(summary = "Obtener fichajes por usuario", description = "Obtener todos los fichajes de un usuario por su ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de fichajes obtenida correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
     })
     public List<Fichaje> getFichajesPorUsuario(@PathVariable int idUsuario) {
@@ -70,68 +72,69 @@ public class FichajeController {
         }
     }
 
-
-    @PostMapping(path = "/nuevaFichaje", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<FichajeDTO> crearFichaje(
-            @RequestParam int idUsuario,
-            @RequestBody FichajeDTO fichajeDTO
-    ) {
-        Usuario usuario = usuarioService.obtenerUsuarioPorIdd(idUsuario);
-        if (usuario == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado");
+    @GetMapping("/tiempoTrabajadoHoy/{idUsuario}")
+    @Operation(summary = "Obtener fichajes por usuario", description = "Obtener todos los fichajes de un usuario por su ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de fichajes obtenida correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+    })
+    public List<Fichaje> getTiempoTrabajadoHoy(@PathVariable int idUsuario) {
+        try {
+            Usuario usuario = usuarioService.obtenerUsuarioPorIdd(idUsuario);
+            if (usuario == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado");
+            }
+            return fichajeService.getFichajesPorUsuario(usuario);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error al obtener fichajes", e);
         }
-        Fichaje creado = fichajeService.crearFichaje(
-                new Fichaje(null,
-                        fichajeDTO.getFechaHoraEntrada(),
-                        fichajeDTO.getFechaHoraSalida(),
-                        fichajeDTO.getUbicacion(),
-                        fichajeDTO.isNfcUsado(),
-                        usuario)
-        );
-        UsuarioFichajeDTO uDto = new UsuarioFichajeDTO(
-                usuario.getId(),
-                usuario.getNombre(),
-                usuario.getApellido1(),
-                usuario.getApellido2(),
-                usuario.getEmail()
-        );
-        FichajeDTO salida = new FichajeDTO(
-                creado.getId(),
-                creado.getFechaHoraEntrada(),
-                creado.getFechaHoraSalida(),
-                creado.getUbicacion(),
-                creado.isNfcUsado(),
-                uDto
-        );
-        return ResponseEntity.status(HttpStatus.CREATED).body(salida);
     }
 
-    @PutMapping(path = "/{id}/cerrarFichaje", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<FichajeDTO> cerrarFichaje(
-            @PathVariable int id,
-            @RequestBody FichajeDTO fichajeDto
-    ) {
-        Fichaje fichaje = fichajeService.getFichajeById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Fichaje no encontrado"));
 
-        fichaje.setFechaHoraSalida(fichajeDto.getFechaHoraSalida());
-        Fichaje actualizado = fichajeService.crearFichaje(fichaje);
-        Usuario usuario = actualizado.getUsuario();
-        UsuarioFichajeDTO uDto = new UsuarioFichajeDTO(
-                usuario.getId(),
-                usuario.getNombre(),
-                usuario.getApellido1(),
-                usuario.getApellido2(),
-                usuario.getEmail()
-        );
-        FichajeDTO salida = new FichajeDTO(
-                actualizado.getId(),
-                actualizado.getFechaHoraEntrada(),
-                actualizado.getFechaHoraSalida(),
-                actualizado.getUbicacion(),
-                actualizado.isNfcUsado(),
-                uDto
-        );
-        return ResponseEntity.ok(salida);
+    /**
+     * Abre(crea) o reabre si ya existia un fichaje cerrado en el día de hoy
+     *
+     * @param idUsuario id del usuario
+     * @return devuelve el fichaje
+     */
+    @PostMapping("/abrirFichaje/{idUsuario}")
+    @Operation(summary = "Crea un fichaje por el id del usuario", description = "Crea un fichaje por el id del usuario sin la fecha de salida")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Fichaje abierto(creado)"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
+            @ApiResponse(responseCode = "404", description = "Fichaje no abierto(creado)")
+    })
+    public ResponseEntity<Fichaje> abrirOReabrirFichajeHoy(@PathVariable int idUsuario) {
+        try {
+            Fichaje fichaje = fichajeService.abrirOReabrirFichajeHoy(idUsuario);
+            return ResponseEntity.ok(fichaje);
+        } catch (EntityNotFoundException ex) {
+            // usuario no existe
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    /**
+     * Cierra el fichaje que esta abierto del día de hoy
+     * @param idUsuario id del usuario
+     * @return devuelve el fichaje
+     */
+    @PutMapping("/cerrarFichaje/{idUsuario}")
+    @Operation(summary = "Edita un fichaje por el id del usuario", description = "Edita un fichaje por el id del usuario para añadir la fecha de salida")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Fichaje cerrado(editado)"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
+            @ApiResponse(responseCode = "404", description = "Fichaje no cerrado(editado)")
+    })
+    public ResponseEntity<Fichaje> cerrarFichajeHoy(@PathVariable int idUsuario) {
+        try {
+            Fichaje fichaje = fichajeService.cerrarFichajeHoy(idUsuario);
+            return ResponseEntity.ok(fichaje);
+        } catch (EntityNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
     }
 }

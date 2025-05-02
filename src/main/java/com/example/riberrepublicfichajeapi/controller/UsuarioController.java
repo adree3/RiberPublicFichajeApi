@@ -7,6 +7,7 @@ import com.example.riberrepublicfichajeapi.model.Grupo;
 import com.example.riberrepublicfichajeapi.model.Horario;
 import com.example.riberrepublicfichajeapi.model.Usuario;
 import com.example.riberrepublicfichajeapi.service.GrupoService;
+import com.example.riberrepublicfichajeapi.service.HorarioService;
 import com.example.riberrepublicfichajeapi.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,10 +30,12 @@ public class UsuarioController {
 
     private final UsuarioService usuarioService;
     private final GrupoService grupoService;
+    private final HorarioService horarioService;
 
-    public UsuarioController(UsuarioService usuarioService, GrupoService grupoService) {
+    public UsuarioController(UsuarioService usuarioService, GrupoService grupoService, HorarioService horarioService) {
         this.usuarioService = usuarioService;
         this.grupoService = grupoService;
+        this.horarioService = horarioService;
     }
 
 
@@ -100,25 +103,14 @@ public class UsuarioController {
             };
 
             if (diaEnum == null) {
-                return ResponseEntity.ok("Hoy no hay horario definido");
+                return ResponseEntity.ok(horarioService.buildDefaultHorarioDTO());
             }
 
             Horario horario = grupoService.obtenerHorarioPorGrupoYDia(grupo.getId(), diaEnum);
             if (horario == null) {
-                return ResponseEntity.ok("No hay horario para este grupo hoy");
+                return ResponseEntity.ok(horarioService.buildDefaultHorarioDTO());
             }
-
-            java.time.Duration duracion = java.time.Duration.between(horario.getHoraEntrada(), horario.getHoraSalida());
-            String horasEstimadas = String.format("%02d:%02d:%02d",
-                    duracion.toHours(),
-                    duracion.toMinutesPart(),
-                    duracion.toSecondsPart());
-
-            return ResponseEntity.ok(new HorarioHoyDTO(
-                    horario.getHoraEntrada().toString(),
-                    horario.getHoraSalida().toString(),
-                    horasEstimadas
-            ));
+            return ResponseEntity.ok(horarioService.toDto(horario));
 
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error al obtener el horario", e);
