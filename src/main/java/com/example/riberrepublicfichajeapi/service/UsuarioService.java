@@ -1,23 +1,41 @@
 package com.example.riberrepublicfichajeapi.service;
 
+import com.example.riberrepublicfichajeapi.dto.HorarioHoyDTO;
+import com.example.riberrepublicfichajeapi.dto.usuario.LoginRequestDTO;
+import com.example.riberrepublicfichajeapi.dto.usuario.UsuarioDTO;
 import com.example.riberrepublicfichajeapi.mapper.UsuarioMapper;
+import com.example.riberrepublicfichajeapi.model.Grupo;
+import com.example.riberrepublicfichajeapi.model.Horario;
 import com.example.riberrepublicfichajeapi.model.Usuario;
+import com.example.riberrepublicfichajeapi.repository.GrupoRepository;
+import com.example.riberrepublicfichajeapi.repository.HorarioRepository;
 import com.example.riberrepublicfichajeapi.repository.UsuarioRepository;
+import org.springdoc.core.ReturnTypeParser;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
-    private final UsuarioMapper usuarioMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final HorarioService horarioService;
+    private final HorarioRepository horarioRepository;
+    private final GrupoRepository grupoRepository;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, UsuarioMapper usuarioMapper) {
+
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, HorarioService horarioService, HorarioRepository horarioRepository, GrupoRepository grupoRepository) {
         this.usuarioRepository = usuarioRepository;
-        this.usuarioMapper = usuarioMapper;
+        this.passwordEncoder = passwordEncoder;
+        this.horarioService = horarioService;
+        this.horarioRepository = horarioRepository;
+        this.grupoRepository = grupoRepository;
     }
 
     public List<Usuario> getUsuarios() {
@@ -29,36 +47,95 @@ public class UsuarioService {
 
     }
 
-    public void crearUsuario(Usuario usuario) {
-        usuarioRepository.save(usuario);
+    /**
+     * Obtiene el horario de hoy de un usuario que se pasa por parametro, sino se pasa un horario default.
+     *
+     * @param idUsuario id del usuario para devolver su horario
+     * @return devuevlve el horario del usuario
+     */
+    public HorarioHoyDTO obtenerHorarioHoy(int idUsuario) {
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
+        Grupo grupo = usuario.getGrupo();
+        if (grupo == null) {
+            throw new EntityNotFoundException("Usuario sin grupo");
+        }
+        DayOfWeek diaSemana = LocalDate.now().getDayOfWeek();
+        Horario.Dia diaEnum = switch (diaSemana) {
+            case MONDAY -> Horario.Dia.lunes;
+            case TUESDAY -> Horario.Dia.martes;
+            case WEDNESDAY -> Horario.Dia.miercoles;
+            case THURSDAY -> Horario.Dia.jueves;
+            case FRIDAY -> Horario.Dia.viernes;
+            default -> null;
+        };
+        if (diaEnum == null) {
+            return horarioService.buildDefaultHorarioDTO();
+        }
+
+        Horario horario = horarioRepository.findByGrupoIdAndDia(grupo.getId(), diaEnum);
+        if (horario == null) {
+            return horarioService.buildDefaultHorarioDTO();
+        } else {
+            return horarioService.toDto(horario);
+        }
     }
 
-    public Usuario login(String email, String contrasena) {
-        Usuario usuario = usuarioRepository.findByEmail(email);
-        if (usuario != null && usuario.getContrasena().equals(contrasena)) {
-            return usuario;
+
+    /**
+     * Crea un usuario desde un dto, hasheando la contraseña.
+     *
+     * @param idGrupo id para identificar el grupo del usuario.
+     * @param usuarioDTO datos del usuario para crearlo.
+     * @return devuelve el usuario creado.
+     */
+    public Usuario crearUsuario(int idGrupo, UsuarioDTO usuarioDTO) {
+        Grupo grupo = grupoRepository.findById(idGrupo)
+                .orElseThrow(() -> new EntityNotFoundException("Grupo no encontrado"));
+
+        Usuario usuario = new Usuario();
+        usuario.setGrupo(grupo);
+        usuario.setNombre(usuarioDTO.getNombre());
+        usuario.setApellido1(usuarioDTO.getApellido1());
+        usuario.setApellido2(usuarioDTO.getApellido2());
+        usuario.setEmail(usuarioDTO.getEmail());
+        usuario.setContrasena(passwordEncoder.encode(usuarioDTO.getContrasena()));
+        usuario.setRol(Usuario.Rol.valueOf(usuarioDTO.getRol()));
+        usuario.setEstado(Usuario.Estado.valueOf(usuarioDTO.getEstado()));
+
+        return usuarioRepository.save(usuario);
+    }
+
+    /**
+     * Comprueba que las credenciales recibidas son correctas.
+     *
+     * @param loginRequestDTO email y contraseña del usuario
+     * @return devuelve el usuario, si las credenciales son correctas
+     */
+    public Usuario login(LoginRequestDTO loginRequestDTO) {
+        Usuario usuario = usuarioRepository.findByEmail(loginRequestDTO.getEmail());
+        if (usuario == null || !passwordEncoder.matches(loginRequestDTO.getContrasena(), usuario.getContrasena())) {
+            throw new BadCredentialsException("Credenciales incorrectas");
         } else {
-            return null;
+            return usuario;
         }
     }
 
     /**
-     * Cambia la contraseña de un usuario
+     * Modifica la contraseña del usuario si coincide la contraseña recibida con la del usuario
      *
-     * @param idUsuario
-     * @param contrasenaActual
-     * @param nuevaContrasena
+     * @param idUsuario        id del usuario al cual cambiar la contraseña
+     * @param contrasenaActual contraseña actual del usuario
+     * @param nuevaContrasena  contraseña por la que se quiere modificar
      */
     public void cambiarContrasena(int idUsuario, String contrasenaActual, String nuevaContrasena) {
         Usuario usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
-        // 1) Verificar contraseña actual
         if (!passwordEncoder.matches(contrasenaActual, usuario.getContrasena())) {
             throw new BadCredentialsException("Contraseña actual incorrecta");
         }
-
-        // 3) Codificar y guardar
         usuario.setContrasena(passwordEncoder.encode(nuevaContrasena));
         usuarioRepository.save(usuario);
     }

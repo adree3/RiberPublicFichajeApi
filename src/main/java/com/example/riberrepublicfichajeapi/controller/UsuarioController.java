@@ -1,5 +1,6 @@
 package com.example.riberrepublicfichajeapi.controller;
 
+import com.example.riberrepublicfichajeapi.dto.HorarioHoyDTO;
 import com.example.riberrepublicfichajeapi.dto.usuario.CambiarContrasenaDTO;
 import com.example.riberrepublicfichajeapi.dto.usuario.LoginRequestDTO;
 import com.example.riberrepublicfichajeapi.dto.usuario.UsuarioDTO;
@@ -20,6 +21,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.persistence.EntityNotFoundException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
@@ -59,42 +61,15 @@ public class UsuarioController {
     @Operation(summary = "Obtener el horario del día para el usuario", description = "Devuelve el horario (hora entrada/salida, horas estimadas) correspondiente al grupo del usuario y el día actual.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Horario encontrado"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
             @ApiResponse(responseCode = "404", description = "No se encontró horario para este grupo hoy")
     })
     public ResponseEntity<?> getHorarioDeHoy(@PathVariable int idUsuario) {
         try {
-            Usuario usuario = usuarioService.obtenerUsuarioPorIdd(idUsuario);
-            if (usuario == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
-            }
-
-            Grupo grupo = usuario.getGrupo();
-            if (grupo == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El usuario no tiene grupo asignado");
-            }
-
-            DayOfWeek diaSemana = LocalDate.now().getDayOfWeek();
-            Horario.Dia diaEnum = switch (diaSemana) {
-                case MONDAY -> Horario.Dia.lunes;
-                case TUESDAY -> Horario.Dia.martes;
-                case WEDNESDAY -> Horario.Dia.miercoles;
-                case THURSDAY -> Horario.Dia.jueves;
-                case FRIDAY -> Horario.Dia.viernes;
-                default -> null;
-            };
-
-            if (diaEnum == null) {
-                return ResponseEntity.ok(horarioService.buildDefaultHorarioDTO());
-            }
-
-            Horario horario = grupoService.obtenerHorarioPorGrupoYDia(grupo.getId(), diaEnum);
-            if (horario == null) {
-                return ResponseEntity.ok(horarioService.buildDefaultHorarioDTO());
-            }
-            return ResponseEntity.ok(horarioService.toDto(horario));
-
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error al obtener el horario", e);
+            HorarioHoyDTO horarioHoyDTO = usuarioService.obtenerHorarioHoy(idUsuario);
+            return ResponseEntity.ok(horarioHoyDTO);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
@@ -102,12 +77,12 @@ public class UsuarioController {
     @Operation(summary = "Login de usuario", description = "Permite iniciar sesión con email y contraseña")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Login exitoso"),
-            @ApiResponse(responseCode = "401", description = "Credenciales inválidas"),
-            @ApiResponse(responseCode = "400", description = "Error de solicitud")
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
+            @ApiResponse(responseCode = "401", description = "Credenciales inválidas")
     })
     public ResponseEntity<Usuario> login(@RequestBody LoginRequestDTO loginRequest) {
         try {
-            Usuario usuario = usuarioService.login(loginRequest.getEmail(), loginRequest.getContrasena());
+            Usuario usuario = usuarioService.login(loginRequest);
             if (usuario != null) {
                 return ResponseEntity.ok(usuario);
             } else {
@@ -125,39 +100,21 @@ public class UsuarioController {
             @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
             @ApiResponse(responseCode = "404", description = "No se pudo crear el usuario")
     })
-    public ResponseEntity<String> crearUsuario(
+    public ResponseEntity<Usuario> crearUsuario(
             @RequestParam @Parameter(description = "Id del grupo", example = "1") int idGrupo,
             @RequestBody UsuarioDTO usuarioDTO
     ) {
         try {
-            Grupo grupo = grupoService.obtenerGrupoPorId(idGrupo);
-            if (grupo != null) {
-                Usuario usuario = new Usuario();
-                usuario.setGrupo(grupo);
-                usuario.setNombre(usuarioDTO.getNombre());
-                usuario.setApellido1(usuarioDTO.getApellido1());
-                usuario.setApellido2(usuarioDTO.getApellido2());
-                usuario.setEmail(usuarioDTO.getEmail());
-                usuario.setContrasena(usuarioDTO.getContrasena());
-                usuario.setRol(Usuario.Rol.valueOf(usuarioDTO.getRol()));
-                usuario.setEstado(Usuario.Estado.valueOf(usuarioDTO.getEstado()));
-
-
-                usuarioService.crearUsuario(usuario);
-                return ResponseEntity.status(HttpStatus.CREATED).body("usuario creado");
-
-            }else {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontro el usuario");
-            }
-
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error al crear el usuario", e);
+            Usuario usuario = usuarioService.crearUsuario(idGrupo, usuarioDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(usuario);
+        } catch(EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
     @PutMapping("/{idUsuario}/cambiarContrasena")
     @Operation(summary = "Cambiar la contraseña de un usuario", description = "Verifica la contraseña actual y la reemplaza por la nueva")
-    public ResponseEntity<Void> changePassword(
+    public ResponseEntity<Void> cambiarContrasena(
             @PathVariable int idUsuario,
             @RequestBody CambiarContrasenaDTO cambiarContrasenaDTO
     ) {
@@ -165,11 +122,7 @@ public class UsuarioController {
             usuarioService.cambiarContrasena(idUsuario, cambiarContrasenaDTO.getContrasenaActual(), cambiarContrasenaDTO.getNuevaContrasena());
             return ResponseEntity.ok().build();
         } catch (BadCredentialsException ex) {
-            // Contraseña actual incorrecta
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        } catch (IllegalArgumentException ex) {
-            // Por ejemplo, nueva contraseña no cumple políticas
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 }

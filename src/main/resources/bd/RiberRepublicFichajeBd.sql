@@ -61,8 +61,8 @@ INSERT INTO usuarios (nombre, apellido1, apellido2, email, contrasena, rol, grup
 ('María', 'López', 'Fernández', 'maria.lopez@example.com', 'hashedpassword2', 'empleado', 1, 'activo'),
 ('Carlos', 'Ruiz', 'Martínez', 'carlos.ruiz@example.com', 'hashedpassword3', 'empleado', 2, 'activo'),
 ('Laura', 'Sánchez', NULL, 'laura.sanchez@example.com', 'hashedpassword4', 'empleado', 2, 'activo'),
-('Pedro', 'García', 'Núñez', 'pedro.garcia@example.com', 'hashedpassword5', 'jefe', 3, 'activo'),
-('Adrian', 'Alonso', 'Perez', 'adrian', 'a', 'jefe', 3, 'activo');
+('Pedro', 'García', 'Núñez', 'pedro.garcia@example.com', '$2a$10$695PekFjaiCkccTrgxwGS.oNXUC0MHq2iZdgF6WPOfszNAigqH.ua', 'jefe', 3, 'activo'),
+('Adrian', 'Alonso', 'Perez', 'adrian', '$2a$10$eygJqaTFHiNwQm.21tOwOelL9i.M8B2j8yV30MRo8ImX2KYGzbpm6', 'jefe', 3, 'activo');
 
 INSERT INTO horarios (grupo_id, dia, hora_entrada, hora_salida) VALUES 
 (1, 'lunes', '09:00:00', '17:00:00'),
