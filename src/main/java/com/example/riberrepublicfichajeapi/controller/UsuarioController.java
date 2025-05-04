@@ -1,8 +1,8 @@
 package com.example.riberrepublicfichajeapi.controller;
 
-import com.example.riberrepublicfichajeapi.dto.HorarioHoyDTO;
-import com.example.riberrepublicfichajeapi.dto.LoginRequestDTO;
-import com.example.riberrepublicfichajeapi.dto.UsuarioDTO;
+import com.example.riberrepublicfichajeapi.dto.usuario.CambiarContrasenaDTO;
+import com.example.riberrepublicfichajeapi.dto.usuario.LoginRequestDTO;
+import com.example.riberrepublicfichajeapi.dto.usuario.UsuarioDTO;
 import com.example.riberrepublicfichajeapi.model.Grupo;
 import com.example.riberrepublicfichajeapi.model.Horario;
 import com.example.riberrepublicfichajeapi.model.Usuario;
@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -51,26 +52,6 @@ public class UsuarioController {
             return usuarioService.getUsuarios();
         }catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error al obtener todos los usuarios", e);
-        }
-    }
-
-    @PostMapping("/login")
-    @Operation(summary = "Login de usuario", description = "Permite iniciar sesión con email y contraseña")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Login exitoso"),
-            @ApiResponse(responseCode = "401", description = "Credenciales inválidas"),
-            @ApiResponse(responseCode = "400", description = "Error de solicitud")
-    })
-    public ResponseEntity<Usuario> login(@RequestBody LoginRequestDTO loginRequest) {
-        try {
-            Usuario usuario = usuarioService.login(loginRequest.getEmail(), loginRequest.getContrasena());
-            if (usuario != null) {
-                return ResponseEntity.ok(usuario);
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error en el login", e);
         }
     }
 
@@ -117,6 +98,25 @@ public class UsuarioController {
         }
     }
 
+    @PostMapping("/login")
+    @Operation(summary = "Login de usuario", description = "Permite iniciar sesión con email y contraseña")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Login exitoso"),
+            @ApiResponse(responseCode = "401", description = "Credenciales inválidas"),
+            @ApiResponse(responseCode = "400", description = "Error de solicitud")
+    })
+    public ResponseEntity<Usuario> login(@RequestBody LoginRequestDTO loginRequest) {
+        try {
+            Usuario usuario = usuarioService.login(loginRequest.getEmail(), loginRequest.getContrasena());
+            if (usuario != null) {
+                return ResponseEntity.ok(usuario);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error en el login", e);
+        }
+    }
 
     @PostMapping("/nuevoUsuario")
     @Operation(summary = "Crear un nuevo usuario", description = "Crear un nuevo usuario")
@@ -152,6 +152,24 @@ public class UsuarioController {
 
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error al crear el usuario", e);
+        }
+    }
+
+    @PutMapping("/{idUsuario}/cambiarContrasena")
+    @Operation(summary = "Cambiar la contraseña de un usuario", description = "Verifica la contraseña actual y la reemplaza por la nueva")
+    public ResponseEntity<Void> changePassword(
+            @PathVariable int idUsuario,
+            @RequestBody CambiarContrasenaDTO cambiarContrasenaDTO
+    ) {
+        try {
+            usuarioService.cambiarContrasena(idUsuario, cambiarContrasenaDTO.getContrasenaActual(), cambiarContrasenaDTO.getNuevaContrasena());
+            return ResponseEntity.ok().build();
+        } catch (BadCredentialsException ex) {
+            // Contraseña actual incorrecta
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (IllegalArgumentException ex) {
+            // Por ejemplo, nueva contraseña no cumple políticas
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 }

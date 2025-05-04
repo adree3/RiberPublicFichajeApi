@@ -1,10 +1,12 @@
 package com.example.riberrepublicfichajeapi.service;
 
-import com.example.riberrepublicfichajeapi.dto.UsuarioDTO;
 import com.example.riberrepublicfichajeapi.mapper.UsuarioMapper;
 import com.example.riberrepublicfichajeapi.model.Usuario;
 import com.example.riberrepublicfichajeapi.repository.UsuarioRepository;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
+
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
 @Service
@@ -16,6 +18,15 @@ public class UsuarioService {
     public UsuarioService(UsuarioRepository usuarioRepository, UsuarioMapper usuarioMapper) {
         this.usuarioRepository = usuarioRepository;
         this.usuarioMapper = usuarioMapper;
+    }
+
+    public List<Usuario> getUsuarios() {
+        return usuarioRepository.findAll();
+    }
+
+    public Usuario obtenerUsuarioPorIdd(int id) {
+        return usuarioRepository.findById(id).orElse(null);
+
     }
 
     public void crearUsuario(Usuario usuario) {
@@ -31,42 +42,24 @@ public class UsuarioService {
         }
     }
 
+    /**
+     * Cambia la contraseña de un usuario
+     *
+     * @param idUsuario
+     * @param contrasenaActual
+     * @param nuevaContrasena
+     */
+    public void cambiarContrasena(int idUsuario, String contrasenaActual, String nuevaContrasena) {
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
-    public UsuarioDTO editarUsuario(int id, UsuarioDTO usuarioDTO) {
-        Usuario usuarioExistente = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        usuarioExistente.setNombre(usuarioDTO.getNombre());
-        usuarioExistente.setApellido1(usuarioDTO.getApellido1());
-        usuarioExistente.setApellido2(usuarioDTO.getApellido2());
-        usuarioExistente.setEmail(usuarioDTO.getEmail());
-        usuarioExistente.setRol(Usuario.Rol.valueOf(usuarioDTO.getRol().toUpperCase()));
-        usuarioExistente.setEstado(Usuario.Estado.valueOf(usuarioDTO.getEstado().toUpperCase()));
-
-        Usuario usuarioActualizado = usuarioRepository.save(usuarioExistente);
-        return usuarioMapper.toDTO(usuarioActualizado);
-    }
-
-    public void eliminarUsuario(int id) {
-        if (usuarioRepository.existsById(id)) {
-            usuarioRepository.deleteById(id);
-        }else {
-            throw new RuntimeException("Usuario no encontrado");
+        // 1) Verificar contraseña actual
+        if (!passwordEncoder.matches(contrasenaActual, usuario.getContrasena())) {
+            throw new BadCredentialsException("Contraseña actual incorrecta");
         }
-    }
 
-    public UsuarioDTO obtenerUsuarioPorId(int id) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        return usuarioMapper.toDTO(usuario);
-    }
-
-    public Usuario obtenerUsuarioPorIdd(int id) {
-        return usuarioRepository.findById(id).orElse(null);
-
-    }
-
-    public List<Usuario> getUsuarios() {
-        return usuarioRepository.findAll();
+        // 3) Codificar y guardar
+        usuario.setContrasena(passwordEncoder.encode(nuevaContrasena));
+        usuarioRepository.save(usuario);
     }
 }

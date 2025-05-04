@@ -1,6 +1,6 @@
 package com.example.riberrepublicfichajeapi.dto;
 
-import lombok.AllArgsConstructor;
+import com.example.riberrepublicfichajeapi.dto.usuario.UsuarioFichajeDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
