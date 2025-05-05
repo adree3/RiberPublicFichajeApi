@@ -1,8 +1,7 @@
 package com.example.riberrepublicfichajeapi.controller;
 
-import com.example.riberrepublicfichajeapi.dto.AusenciaDTO;
+import com.example.riberrepublicfichajeapi.dto.CrearAusenciaDTO;
 import com.example.riberrepublicfichajeapi.model.Ausencia;
-import com.example.riberrepublicfichajeapi.model.Usuario;
 import com.example.riberrepublicfichajeapi.service.AusenciaService;
 import com.example.riberrepublicfichajeapi.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,29 +52,11 @@ public class AusenciaController {
             @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
             @ApiResponse(responseCode = "404", description = "No se pudo crear la ausencia")
     })
-    public ResponseEntity<String> crearAusencia(
+    public ResponseEntity<Ausencia> crearAusencia(
             @RequestParam @Parameter(description = "Id del usuario", example = "1") int idUsuario,
-            @RequestBody  AusenciaDTO ausenciaDTO
+            @RequestBody CrearAusenciaDTO crearAusenciaDTO
     ) {
-        try {
-            Usuario usuario = usuarioService.obtenerUsuarioPorIdd(idUsuario);
-            if (usuario != null) {
-                Ausencia nuevaAusencia =new Ausencia();
-                nuevaAusencia.setUsuario(usuario);
-                nuevaAusencia.setTiempoRegistrado(ausenciaDTO.getTiempoRegistrado());
-                nuevaAusencia.setFecha(ausenciaDTO.getFecha());
-                nuevaAusencia.setMotivo(Ausencia.Motivo.valueOf(ausenciaDTO.getMotivo()));
-                nuevaAusencia.setJustificada(ausenciaDTO.isJustificada());
-                nuevaAusencia.setDetalles(ausenciaDTO.getDetalles());
-                ausenciaService.crearAusencia(nuevaAusencia);
-                return ResponseEntity.status(HttpStatus.CREATED).body("ausencia creada");
-
-            }else {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontro el usuario");
-            }
-
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error al crear la ausencia", e);
-        }
+        Ausencia creada = ausenciaService.crearAusencia(idUsuario, crearAusenciaDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(creada);
     }
 }

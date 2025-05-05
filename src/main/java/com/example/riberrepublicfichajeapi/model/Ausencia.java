@@ -31,7 +31,7 @@ public class Ausencia {
     private Usuario usuario;
 
     public enum Motivo {
-     retraso, permiso, vacaciones, enfermedad, falta_injustificada
+     retraso, permiso, vacaciones, enfermedad, falta_injustificada, otro
     }
 
     public Ausencia() {

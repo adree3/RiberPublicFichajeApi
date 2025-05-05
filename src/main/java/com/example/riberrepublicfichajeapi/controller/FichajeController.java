@@ -99,9 +99,9 @@ public class FichajeController {
             @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
             @ApiResponse(responseCode = "404", description = "Fichaje no abierto(creado)")
     })
-    public ResponseEntity<Fichaje> abrirOReabrirFichajeHoy(@PathVariable int idUsuario) {
+    public ResponseEntity<Fichaje> abrirOReabrirFichajeHoy(@PathVariable int idUsuario, @RequestBody AbrirFichajeHoyDTO abrirFichajeHoyDTO) {
         try {
-            Fichaje fichaje = fichajeService.abrirOReabrirFichajeHoy(idUsuario);
+            Fichaje fichaje = fichajeService.abrirNuevoFichajeHoy(idUsuario,abrirFichajeHoyDTO);
             return ResponseEntity.ok(fichaje);
         } catch (EntityNotFoundException ex) {
             // usuario no existe
@@ -127,8 +127,6 @@ public class FichajeController {
             return ResponseEntity.ok(fichaje);
         } catch (EntityNotFoundException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalStateException ex) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
 }

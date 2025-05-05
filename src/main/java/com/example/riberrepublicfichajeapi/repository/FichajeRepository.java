@@ -16,6 +16,8 @@ public interface FichajeRepository extends JpaRepository<Fichaje, Integer> {
 
     Optional<Fichaje> findFirstByUsuarioAndFechaHoraEntradaBetween(Usuario usuario, LocalDateTime inicioHoy, LocalDateTime inicioManana);
 
+    Optional<Fichaje> findFirstByUsuarioAndFechaHoraEntradaBetweenAndFechaHoraSalidaIsNull(Usuario usuario, LocalDateTime desde, LocalDateTime hasta);
+
     List<Fichaje> findAllByUsuarioAndFechaHoraEntradaBetween(Usuario usuario, LocalDateTime inicioHoy, LocalDateTime inicioManana);
 
 

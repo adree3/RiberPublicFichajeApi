@@ -44,7 +44,7 @@ CREATE TABLE ausencias (
     id int auto_increment primary key,
     usuario_id int not null,
     fecha date not null,
-    motivo ENUM('falta_injustificada', 'enfermedad', 'vacaciones', 'permiso', 'retraso') DEFAULT 'falta_injustificada',
+    motivo ENUM('falta_injustificada', 'enfermedad', 'vacaciones', 'permiso', 'retraso', 'otro') DEFAULT 'falta_injustificada',
     justificada boolean default false,
     detalles varchar(255),
     tiempo_registrado TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
