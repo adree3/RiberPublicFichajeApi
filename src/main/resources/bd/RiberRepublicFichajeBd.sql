@@ -45,6 +45,7 @@ CREATE TABLE ausencias (
     usuario_id int not null,
     fecha date not null,
     motivo ENUM('falta_injustificada', 'enfermedad', 'vacaciones', 'permiso', 'retraso', 'otro') DEFAULT 'falta_injustificada',
+    estado ENUM('vacio','pendiente', 'aceptada', 'rechazada') default 'vacio',
     justificada boolean default false,
     detalles varchar(255),
     tiempo_registrado TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -75,9 +76,9 @@ INSERT INTO fichajes (usuario_id, fecha_hora_entrada, fecha_hora_salida, ubicaci
 (1, '2025-04-01 09:00:00', '2025-04-01 17:00:00', 'Oficina Principal', TRUE),
 (1, '2025-04-01 09:00:00', '2025-04-01 19:00:00', 'Oficina Principal', TRUE),
 (1, '2025-04-01 09:00:00', '2025-04-01 15:00:00', 'Oficina Principal', TRUE),
-(2, '2025-04-01 09:05:00', '2025-04-01 17:10:00', 'Oficina Principal', FALSE),
-(3, '2025-04-02 10:00:00', '2025-04-02 18:00:00', 'Sucursal Norte', TRUE),
-(4, '2025-04-03 08:30:00', '2025-04-03 16:30:00', 'Sucursal Sur', FALSE);
+(6, '2025-04-01 09:05:00', '2025-04-01 17:10:00', 'Oficina Principal', FALSE),
+(6, '2025-04-02 10:00:00', '2025-04-02 18:00:00', 'Sucursal Norte', TRUE),
+(6, '2025-04-03 08:30:00', '2025-04-03 16:30:00', 'Sucursal Sur', FALSE);
 
 
 INSERT INTO ausencias (usuario_id, fecha, motivo, justificada, detalles) VALUES 

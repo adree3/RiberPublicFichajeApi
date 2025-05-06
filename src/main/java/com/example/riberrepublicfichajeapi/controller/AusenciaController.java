@@ -9,11 +9,14 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.persistence.EntityNotFoundException;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -43,6 +46,15 @@ public class AusenciaController {
         }catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error al obtener todos los productos", e);
         }
+    }
+
+    @GetMapping("/{usuarioId}/existe")
+    @Operation(summary="Obtener ausencia de hoy para un usuario")
+    public ResponseEntity<Boolean> existeAusencia(
+            @PathVariable int usuarioId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha
+    ) {
+        return ResponseEntity.ok(ausenciaService.existeAusencia(usuarioId, fecha));
     }
 
     @PostMapping("/nuevaAusencia")

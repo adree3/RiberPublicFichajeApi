@@ -1,9 +1,14 @@
 package com.example.riberrepublicfichajeapi.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "ausencias")
 public class Ausencia {
@@ -19,6 +24,9 @@ public class Ausencia {
     @Column(nullable = false)
     private Motivo motivo = Motivo.falta_injustificada;
 
+    @Enumerated(EnumType.STRING)
+    private Estado estado = Estado.vacio;
+
     private boolean justificada;
 
     private String detalles;
@@ -31,7 +39,10 @@ public class Ausencia {
     private Usuario usuario;
 
     public enum Motivo {
-     retraso, permiso, vacaciones, enfermedad, falta_injustificada, otro
+        retraso, permiso, vacaciones, enfermedad, falta_injustificada, otro
+    }
+    public enum Estado {
+        vacio, pendiente, aceptada, rechazada
     }
 
     public Ausencia() {
@@ -44,62 +55,6 @@ public class Ausencia {
         this.justificada = justificada;
         this.detalles = detalles;
         this.tiempoRegistrado = tiempoRegistrado;
-        this.usuario = usuario;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public LocalDate getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(LocalDate fecha) {
-        this.fecha = fecha;
-    }
-
-    public Motivo getMotivo() {
-        return motivo;
-    }
-
-    public void setMotivo(Motivo motivo) {
-        this.motivo = motivo;
-    }
-
-    public boolean isJustificada() {
-        return justificada;
-    }
-
-    public void setJustificada(boolean justificada) {
-        this.justificada = justificada;
-    }
-
-    public String getDetalles() {
-        return detalles;
-    }
-
-    public void setDetalles(String detalles) {
-        this.detalles = detalles;
-    }
-
-    public LocalDateTime getTiempoRegistrado() {
-        return tiempoRegistrado;
-    }
-
-    public void setTiempoRegistrado(LocalDateTime tiempoRegistrado) {
-        this.tiempoRegistrado = tiempoRegistrado;
-    }
-
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
     }
 }

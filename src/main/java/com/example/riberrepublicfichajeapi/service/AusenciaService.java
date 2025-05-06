@@ -10,6 +10,7 @@ import com.example.riberrepublicfichajeapi.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,6 +30,10 @@ public class AusenciaService {
         return ausenciaRepository.findAll();
     }
 
+    public boolean existeAusencia(int idUsuario, LocalDate fecha) {
+        return ausenciaRepository.existsByUsuarioIdAndFecha(idUsuario, fecha);
+    }
+
     public Ausencia crearAusencia(int idUsuario, CrearAusenciaDTO crearAusenciaDTO) {
         Usuario usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
@@ -37,6 +42,7 @@ public class AusenciaService {
         ausencia.setUsuario(usuario);
         ausencia.setFecha(crearAusenciaDTO.getFecha());
         ausencia.setMotivo(Ausencia.Motivo.valueOf(crearAusenciaDTO.getMotivo()));
+        ausencia.setEstado(Ausencia.Estado.pendiente    );
         ausencia.setDetalles(crearAusenciaDTO.getDetalles());
         ausencia.setJustificada(false);
         ausencia.setTiempoRegistrado(LocalDateTime.now());
