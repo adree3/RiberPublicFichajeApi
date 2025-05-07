@@ -32,6 +32,7 @@ import java.util.List;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
+
     private final GrupoService grupoService;
     private final HorarioService horarioService;
 
@@ -124,5 +125,32 @@ public class UsuarioController {
         } catch (BadCredentialsException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+    }
+
+    @PutMapping("editarUsuario/{id}")
+    @Operation(summary = "Editar un usuario", description = "Editar un usuario")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "usuario editado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
+            @ApiResponse(responseCode = "404", description = "No se pudo editar el usuario")
+    })
+    public ResponseEntity<Usuario> editarUsuario(
+            @PathVariable int id,
+            @RequestBody Usuario usuario,
+            @RequestParam int idGrupo) {
+        Usuario usuarioEditado = usuarioService.actualizarUsuario(id, usuario, idGrupo);
+        return ResponseEntity.ok(usuarioEditado);
+    }
+
+    @DeleteMapping("/eliminarUsuario/{id}")
+    @Operation(summary = "Eliminar un usuario", description = "Eliminar el usuario indicado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "usuario eliminado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
+            @ApiResponse(responseCode = "404", description = "No se pudo eliminar el usuario")
+    })
+    public ResponseEntity<Void> eliminarUsuario(@PathVariable int id) {
+        usuarioService.eliminarUsuario(id);
+        return ResponseEntity.noContent().build();
     }
 }

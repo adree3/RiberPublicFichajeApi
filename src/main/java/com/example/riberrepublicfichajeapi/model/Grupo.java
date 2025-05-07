@@ -20,10 +20,11 @@ public class Grupo {
     private int faltasTotales;
 
     @OneToMany(mappedBy = "grupo", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonManagedReference("grupo-usuario")
     private List<Usuario> usuarios;
 
     @OneToMany(mappedBy = "grupo", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("grupo-horario")
     private List<Horario> horarios;
 
     public Grupo() {

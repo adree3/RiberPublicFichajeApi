@@ -11,9 +11,11 @@ import com.example.riberrepublicfichajeapi.repository.GrupoRepository;
 import com.example.riberrepublicfichajeapi.repository.HorarioRepository;
 import com.example.riberrepublicfichajeapi.repository.UsuarioRepository;
 import org.springdoc.core.ReturnTypeParser;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.persistence.EntityNotFoundException;
 import java.time.DayOfWeek;
@@ -138,5 +140,47 @@ public class UsuarioService {
         }
         usuario.setContrasena(passwordEncoder.encode(nuevaContrasena));
         usuarioRepository.save(usuario);
+    }
+
+    /**
+     * Actualiza el usuario por el id que le han pasado, con los datos del nuevoUsuario
+     *
+     * @param id para obtener el usuario.
+     * @param usuarioEditado nuevos datos del usuario.
+     * @param idGrupo nuego grupo asignado
+     * @return deveulve el usuario actualizado
+     */
+    public Usuario actualizarUsuario(int id, Usuario usuarioEditado, int idGrupo) {
+        Usuario usuarioExistente = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+        // Campos editables
+        usuarioExistente.setNombre(usuarioEditado.getNombre());
+        usuarioExistente.setApellido1(usuarioEditado.getApellido1());
+        usuarioExistente.setApellido2(usuarioEditado.getApellido2());
+        usuarioExistente.setEmail(usuarioEditado.getEmail());
+        usuarioExistente.setRol(usuarioEditado.getRol());
+        usuarioExistente.setEstado(usuarioEditado.getEstado());
+
+        // Si han puesto contraseña nueva
+        if (usuarioEditado.getContrasena() != null && !usuarioEditado.getContrasena().isBlank()) {
+            usuarioExistente.setContrasena(passwordEncoder.encode(usuarioEditado.getContrasena()));
+        }
+
+        Grupo grupo = grupoRepository.findById(idGrupo)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Grupo no encontrado"));
+        usuarioExistente.setGrupo(grupo);
+
+        return usuarioRepository.save(usuarioExistente);
+    }
+
+    /**
+     * Elimina el usuario indicado por el id.
+     *
+     * @param id para encontrar el usuario.
+     */
+    public void eliminarUsuario(int id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado con id " + id));
+        usuarioRepository.delete(usuario);
     }
 }

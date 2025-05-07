@@ -37,7 +37,7 @@ public class Usuario {
 
     @ManyToOne
     @JoinColumn(name = "grupo_id")
-    @JsonBackReference
+    @JsonBackReference("grupo-usuario")
     private Grupo grupo;
 
     public enum Rol {

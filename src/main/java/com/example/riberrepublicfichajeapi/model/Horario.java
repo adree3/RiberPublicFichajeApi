@@ -1,5 +1,7 @@
 package com.example.riberrepublicfichajeapi.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import javax.persistence.*;
 import java.time.LocalTime;
 
@@ -23,6 +25,7 @@ public class Horario {
 
     @ManyToOne
     @JoinColumn(name = "grupo_id", nullable = false)
+    @JsonBackReference("grupo-horario")
     private Grupo grupo;
 
     public enum Dia {

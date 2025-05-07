@@ -2,7 +2,6 @@ package com.example.riberrepublicfichajeapi.service;
 
 import com.example.riberrepublicfichajeapi.dto.AusenciaDTO;
 import com.example.riberrepublicfichajeapi.dto.CrearAusenciaDTO;
-import com.example.riberrepublicfichajeapi.mapper.AusenciaMapper;
 import com.example.riberrepublicfichajeapi.model.Ausencia;
 import com.example.riberrepublicfichajeapi.model.Usuario;
 import com.example.riberrepublicfichajeapi.repository.AusenciaRepository;
