@@ -183,4 +183,14 @@ public class UsuarioService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado con id " + id));
         usuarioRepository.delete(usuario);
     }
+
+    /**
+     * Comprueba si el email que recibe existe
+     *
+     * @param email string a comprobar
+     * @return true si existe, false si no existe
+     */
+    public boolean emailExiste(String email) {
+        return usuarioRepository.existsByEmail(email);
+    }
 }

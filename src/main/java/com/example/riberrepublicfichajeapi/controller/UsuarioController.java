@@ -74,6 +74,23 @@ public class UsuarioController {
         }
     }
 
+    /**
+     * EndPoint que comprueba si existe un email recibido
+     *
+     * @param email string a comprobar
+     * @return devuelve true si existe o false si no existe
+     */
+    @GetMapping("/existe")
+    @Operation(summary = "Comprueba si existe un email", description = "Comprueba si existe un email")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Solicitud correcta"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
+    })
+    public ResponseEntity<Boolean> emailExiste(@RequestParam String email) {
+        boolean existe = usuarioService.emailExiste(email);
+        return ResponseEntity.ok(existe);
+    }
+
     @PostMapping("/login")
     @Operation(summary = "Login de usuario", description = "Permite iniciar sesión con email y contraseña")
     @ApiResponses(value = {
