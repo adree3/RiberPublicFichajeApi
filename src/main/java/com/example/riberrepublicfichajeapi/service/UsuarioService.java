@@ -44,6 +44,11 @@ public class UsuarioService {
         return usuarioRepository.findAll();
     }
 
+    public List<Usuario> getUsuariosActivos() {
+        return usuarioRepository.findByEstado(Usuario.Estado.activo);
+    }
+
+
     public Usuario obtenerUsuarioPorIdd(int id) {
         return usuarioRepository.findById(id).orElse(null);
 
@@ -153,7 +158,7 @@ public class UsuarioService {
     public Usuario actualizarUsuario(int id, Usuario usuarioEditado, int idGrupo) {
         Usuario usuarioExistente = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
-        // Campos editables
+
         usuarioExistente.setNombre(usuarioEditado.getNombre());
         usuarioExistente.setApellido1(usuarioEditado.getApellido1());
         usuarioExistente.setApellido2(usuarioEditado.getApellido2());
@@ -161,15 +166,12 @@ public class UsuarioService {
         usuarioExistente.setRol(usuarioEditado.getRol());
         usuarioExistente.setEstado(usuarioEditado.getEstado());
 
-        // Si han puesto contraseña nueva
         if (usuarioEditado.getContrasena() != null && !usuarioEditado.getContrasena().isBlank()) {
             usuarioExistente.setContrasena(passwordEncoder.encode(usuarioEditado.getContrasena()));
         }
-
         Grupo grupo = grupoRepository.findById(idGrupo)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Grupo no encontrado"));
         usuarioExistente.setGrupo(grupo);
-
         return usuarioRepository.save(usuarioExistente);
     }
 
@@ -182,5 +184,15 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado con id " + id));
         usuarioRepository.delete(usuario);
+    }
+
+    /**
+     * Comprueba si el email que recibe existe
+     *
+     * @param email string a comprobar
+     * @return true si existe, false si no existe
+     */
+    public boolean emailExiste(String email) {
+        return usuarioRepository.existsByEmail(email);
     }
 }

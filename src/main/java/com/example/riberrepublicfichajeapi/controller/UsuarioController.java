@@ -33,13 +33,8 @@ public class UsuarioController {
 
     private final UsuarioService usuarioService;
 
-    private final GrupoService grupoService;
-    private final HorarioService horarioService;
-
-    public UsuarioController(UsuarioService usuarioService, GrupoService grupoService, HorarioService horarioService) {
+    public UsuarioController(UsuarioService usuarioService) {
         this.usuarioService = usuarioService;
-        this.grupoService = grupoService;
-        this.horarioService = horarioService;
     }
 
 
@@ -58,6 +53,17 @@ public class UsuarioController {
         }
     }
 
+    @GetMapping("/activos")
+    @Operation(summary = "Obtener todos los usuarios activos o no", description = "Obtener una lista de todos los usuarios segun su estado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de usuarios obteniados correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
+            @ApiResponse(responseCode = "404", description = "No se encontraron usuarios")
+    })
+    public List<Usuario> getUsuariosActivos() {
+        return usuarioService.getUsuariosActivos();
+    }
+
     @GetMapping("/{idUsuario}/horarioHoy")
     @Operation(summary = "Obtener el horario del día para el usuario", description = "Devuelve el horario (hora entrada/salida, horas estimadas) correspondiente al grupo del usuario y el día actual.")
     @ApiResponses(value = {
@@ -72,6 +78,23 @@ public class UsuarioController {
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+    }
+
+    /**
+     * EndPoint que comprueba si existe un email recibido
+     *
+     * @param email string a comprobar
+     * @return devuelve true si existe o false si no existe
+     */
+    @GetMapping("/existe")
+    @Operation(summary = "Comprueba si existe un email", description = "Comprueba si existe un email")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Solicitud correcta"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
+    })
+    public ResponseEntity<Boolean> emailExiste(@RequestParam String email) {
+        boolean existe = usuarioService.emailExiste(email);
+        return ResponseEntity.ok(existe);
     }
 
     @PostMapping("/login")
