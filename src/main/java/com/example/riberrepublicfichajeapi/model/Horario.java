@@ -1,12 +1,20 @@
 package com.example.riberrepublicfichajeapi.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalTime;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "horarios")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Horario {
 
     @Id
@@ -25,7 +33,7 @@ public class Horario {
 
     @ManyToOne
     @JoinColumn(name = "grupo_id", nullable = false)
-    @JsonBackReference("grupo-horario")
+    @JsonIdentityReference(alwaysAsId = true)
     private Grupo grupo;
 
     public enum Dia {
@@ -43,44 +51,5 @@ public class Horario {
         this.grupo = grupo;
     }
 
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Dia getDia() {
-        return dia;
-    }
-
-    public void setDia(Dia dia) {
-        this.dia = dia;
-    }
-
-    public LocalTime getHoraEntrada() {
-        return horaEntrada;
-    }
-
-    public void setHoraEntrada(LocalTime horaEntrada) {
-        this.horaEntrada = horaEntrada;
-    }
-
-    public LocalTime getHoraSalida() {
-        return horaSalida;
-    }
-
-    public void setHoraSalida(LocalTime horaSalida) {
-        this.horaSalida = horaSalida;
-    }
-
-    public Grupo getGrupo() {
-        return grupo;
-    }
-
-    public void setGrupo(Grupo grupo) {
-        this.grupo = grupo;
-    }
 }
 

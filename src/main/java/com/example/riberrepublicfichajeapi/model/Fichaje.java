@@ -1,10 +1,19 @@
 package com.example.riberrepublicfichajeapi.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "fichajes")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Fichaje {
 
     @Id
@@ -21,6 +30,7 @@ public class Fichaje {
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
+    @JsonIdentityReference(alwaysAsId = true)
     private Usuario usuario;
 
     public Fichaje() {
@@ -35,51 +45,4 @@ public class Fichaje {
         this.usuario = usuario;
     }
 
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public LocalDateTime getFechaHoraEntrada() {
-        return fechaHoraEntrada;
-    }
-
-    public void setFechaHoraEntrada(LocalDateTime fechaHoraEntrada) {
-        this.fechaHoraEntrada = fechaHoraEntrada;
-    }
-
-    public LocalDateTime getFechaHoraSalida() {
-        return fechaHoraSalida;
-    }
-
-    public void setFechaHoraSalida(LocalDateTime fechaHoraSalida) {
-        this.fechaHoraSalida = fechaHoraSalida;
-    }
-
-    public String getUbicacion() {
-        return ubicacion;
-    }
-
-    public void setUbicacion(String ubicacion) {
-        this.ubicacion = ubicacion;
-    }
-
-    public boolean isNfcUsado() {
-        return nfcUsado;
-    }
-
-    public void setNfcUsado(boolean nfcUsado) {
-        this.nfcUsado = nfcUsado;
-    }
-
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
 }
