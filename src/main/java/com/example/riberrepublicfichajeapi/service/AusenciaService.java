@@ -48,4 +48,21 @@ public class AusenciaService {
 
         return ausenciaRepository.save(ausencia);
     }
+
+    public Ausencia actualizarAusencia(int id, Ausencia.Estado estado, String detalles) {
+        Ausencia ausencia = ausenciaRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Ausencia no encontrada: " + id));
+
+        ausencia.setEstado(estado);
+        if (estado == Ausencia.Estado.aceptada) {
+            ausencia.setJustificada(true);
+        } else if (estado == Ausencia.Estado.rechazada) {
+            ausencia.setJustificada(false);
+        }
+        if (detalles != null) {
+            ausencia.setDetalles(detalles);
+        }
+
+        return ausenciaRepository.save(ausencia);
+    }
 }

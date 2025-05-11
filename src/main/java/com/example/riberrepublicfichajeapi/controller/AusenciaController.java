@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/ausencias")
@@ -70,5 +71,18 @@ public class AusenciaController {
     ) {
         Ausencia creada = ausenciaService.crearAusencia(idUsuario, crearAusenciaDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(creada);
+    }
+
+    @PutMapping("/editarAusencia/{id}")
+    public ResponseEntity<Ausencia> actualizarAusencia(
+            @PathVariable int id,
+            @RequestBody Map<String, Object> ausenciaEditada
+    ) {
+        String estadoStr = (String) ausenciaEditada.get("estado");
+        Ausencia.Estado estado = Ausencia.Estado.valueOf(estadoStr);
+        String detalles = ausenciaEditada.containsKey("detalles") ? (String) ausenciaEditada.get("detalles") : null;
+
+        Ausencia actualizado = ausenciaService.actualizarAusencia(id, estado, detalles);
+        return ResponseEntity.ok(actualizado);
     }
 }
