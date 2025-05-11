@@ -1,6 +1,6 @@
 package com.example.riberrepublicfichajeapi.mapper;
 
-import com.example.riberrepublicfichajeapi.dto.FichajeDTO;
+import com.example.riberrepublicfichajeapi.dto.fichaje.FichajeDTO;
 import com.example.riberrepublicfichajeapi.model.Fichaje;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;

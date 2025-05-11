@@ -1,6 +1,6 @@
 package com.example.riberrepublicfichajeapi.mapper;
 
-import com.example.riberrepublicfichajeapi.dto.HorarioDTO;
+import com.example.riberrepublicfichajeapi.dto.horario.HorarioDTO;
 import com.example.riberrepublicfichajeapi.model.Horario;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;

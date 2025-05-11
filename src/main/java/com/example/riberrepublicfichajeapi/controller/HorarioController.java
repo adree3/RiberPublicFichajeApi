@@ -1,6 +1,6 @@
 package com.example.riberrepublicfichajeapi.controller;
 
-import com.example.riberrepublicfichajeapi.dto.HorarioDTO;
+import com.example.riberrepublicfichajeapi.dto.horario.HorarioDTO;
 import com.example.riberrepublicfichajeapi.model.Grupo;
 import com.example.riberrepublicfichajeapi.model.Horario;
 import com.example.riberrepublicfichajeapi.service.GrupoService;
@@ -8,7 +8,6 @@ import com.example.riberrepublicfichajeapi.service.HorarioService;
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.responses.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

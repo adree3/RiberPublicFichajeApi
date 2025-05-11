@@ -1,7 +1,7 @@
 package com.example.riberrepublicfichajeapi.service;
 
-import com.example.riberrepublicfichajeapi.dto.HorarioDTO;
-import com.example.riberrepublicfichajeapi.dto.HorarioHoyDTO;
+import com.example.riberrepublicfichajeapi.dto.horario.HorarioDTO;
+import com.example.riberrepublicfichajeapi.dto.horario.HorarioHoyDTO;
 import com.example.riberrepublicfichajeapi.mapper.HorarioMapper;
 import com.example.riberrepublicfichajeapi.model.Horario;
 import com.example.riberrepublicfichajeapi.repository.HorarioRepository;

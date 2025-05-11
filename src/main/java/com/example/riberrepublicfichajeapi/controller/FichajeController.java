@@ -1,19 +1,16 @@
 package com.example.riberrepublicfichajeapi.controller;
 
-import com.example.riberrepublicfichajeapi.dto.*;
-import com.example.riberrepublicfichajeapi.model.Ausencia;
+import com.example.riberrepublicfichajeapi.dto.fichaje.AbrirFichajeHoyDTO;
+import com.example.riberrepublicfichajeapi.dto.fichaje.TotalHorasHoyDTO;
 import com.example.riberrepublicfichajeapi.model.Fichaje;
 import com.example.riberrepublicfichajeapi.model.Usuario;
 import com.example.riberrepublicfichajeapi.service.FichajeService;
 import com.example.riberrepublicfichajeapi.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;

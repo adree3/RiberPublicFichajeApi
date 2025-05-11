@@ -1,24 +1,18 @@
 package com.example.riberrepublicfichajeapi.controller;
 
-import com.example.riberrepublicfichajeapi.dto.AusenciaDTO;
-import com.example.riberrepublicfichajeapi.dto.FichajeDTO;
-import com.example.riberrepublicfichajeapi.dto.GrupoDTO;
+import com.example.riberrepublicfichajeapi.dto.grupo.ActualizarGrupoDTO;
+import com.example.riberrepublicfichajeapi.dto.grupo.GrupoDTO;
 import com.example.riberrepublicfichajeapi.model.*;
 import com.example.riberrepublicfichajeapi.service.GrupoService;
-import com.example.riberrepublicfichajeapi.service.HorarioService;
-import com.example.riberrepublicfichajeapi.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.GregorianCalendar;
 import java.util.List;
 
 @RestController
@@ -66,5 +60,31 @@ public class GrupoController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error al crear el grupo", e);
         }
+    }
+
+    @PutMapping("/editarGrupo/{id}")
+    @Operation(summary = "Actualizar grupo", description = "Modifica nombre y usuarios de un grupo")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Grupo actualizado"),
+            @ApiResponse(responseCode = "404", description = "Grupo no encontrado"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos")
+    })
+    public ResponseEntity<Grupo> actualizarGrupo(
+            @PathVariable("id") int id,
+            @RequestBody ActualizarGrupoDTO actualizarGrupoDTO
+    ) {
+        Grupo updated = grupoService.actualizarGrupo(id, actualizarGrupoDTO);
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/eliminarGrupo/{id}")
+    @Operation(summary = "Eliminar grupo", description = "Borra un grupo y reasigna sus usuarios al grupo 'Sin Asignar'")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Grupo eliminado correctamente"),
+            @ApiResponse(responseCode = "404", description = "Grupo no encontrado")
+    })
+    public ResponseEntity<Void> eliminarGrupo(@PathVariable("id") int id) {
+        grupoService.eliminarGrupo(id);
+        return ResponseEntity.noContent().build();
     }
 }

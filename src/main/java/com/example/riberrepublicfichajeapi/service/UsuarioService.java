@@ -1,16 +1,14 @@
 package com.example.riberrepublicfichajeapi.service;
 
-import com.example.riberrepublicfichajeapi.dto.HorarioHoyDTO;
+import com.example.riberrepublicfichajeapi.dto.horario.HorarioHoyDTO;
 import com.example.riberrepublicfichajeapi.dto.usuario.LoginRequestDTO;
 import com.example.riberrepublicfichajeapi.dto.usuario.UsuarioDTO;
-import com.example.riberrepublicfichajeapi.mapper.UsuarioMapper;
 import com.example.riberrepublicfichajeapi.model.Grupo;
 import com.example.riberrepublicfichajeapi.model.Horario;
 import com.example.riberrepublicfichajeapi.model.Usuario;
 import com.example.riberrepublicfichajeapi.repository.GrupoRepository;
 import com.example.riberrepublicfichajeapi.repository.HorarioRepository;
 import com.example.riberrepublicfichajeapi.repository.UsuarioRepository;
-import org.springdoc.core.ReturnTypeParser;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -99,7 +97,8 @@ public class UsuarioService {
      */
     public Usuario crearUsuario(int idGrupo, UsuarioDTO usuarioDTO) {
         Grupo grupo = grupoRepository.findById(idGrupo)
-                .orElseThrow(() -> new EntityNotFoundException("Grupo no encontrado"));
+                .orElse(grupoRepository.findByNombre("Sin asignar")
+                        .orElseThrow(() -> new IllegalArgumentException("El grupo 'Sin Asignar' no existe")));
 
         Usuario usuario = new Usuario();
         usuario.setGrupo(grupo);

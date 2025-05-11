@@ -1,5 +1,6 @@
 package com.example.riberrepublicfichajeapi.repository;
 
+import com.example.riberrepublicfichajeapi.model.Grupo;
 import com.example.riberrepublicfichajeapi.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -14,4 +15,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     boolean existsByEmail(String email);
 
     List<Usuario> findByEstado(Usuario.Estado estado);
+
+    List<Usuario> findByGrupo(Grupo grupo);
 }

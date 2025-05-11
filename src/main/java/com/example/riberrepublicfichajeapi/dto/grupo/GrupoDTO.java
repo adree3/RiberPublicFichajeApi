@@ -1,4 +1,4 @@
-package com.example.riberrepublicfichajeapi.dto;
+package com.example.riberrepublicfichajeapi.dto.grupo;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,6 +1,6 @@
 package com.example.riberrepublicfichajeapi.controller;
 
-import com.example.riberrepublicfichajeapi.dto.CrearAusenciaDTO;
+import com.example.riberrepublicfichajeapi.dto.ausencia.CrearAusenciaDTO;
 import com.example.riberrepublicfichajeapi.model.Ausencia;
 import com.example.riberrepublicfichajeapi.service.AusenciaService;
 import com.example.riberrepublicfichajeapi.service.UsuarioService;
@@ -15,9 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/ausencias")
@@ -70,5 +70,35 @@ public class AusenciaController {
     ) {
         Ausencia creada = ausenciaService.crearAusencia(idUsuario, crearAusenciaDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(creada);
+    }
+
+    @PutMapping("/editarAusencia/{id}")
+    @Operation(summary = "Editar una auencia", description = "Editar una ausencia")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "ausencia editada correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
+            @ApiResponse(responseCode = "404", description = "No se pudo editar la ausencia")
+    })
+    public ResponseEntity<Ausencia> actualizarAusencia(
+            @PathVariable int id,
+            @RequestBody Map<String, Object> ausenciaEditada
+    ) {
+        String estadoStr = (String) ausenciaEditada.get("estado");
+        Ausencia.Estado estado = Ausencia.Estado.valueOf(estadoStr);
+        String detalles = ausenciaEditada.containsKey("detalles") ? (String) ausenciaEditada.get("detalles") : null;
+
+        Ausencia actualizado = ausenciaService.actualizarAusencia(id, estado, detalles);
+        return ResponseEntity.ok(actualizado);
+    }
+    @PostMapping("/generarAusencias")
+    @Operation(summary = "Generar ausencias", description = "Generar ausencias por los fichajes")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "ausencias generadas correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
+            @ApiResponse(responseCode = "404", description = "No se pudo generar las ausencias")
+    })
+    public ResponseEntity<Void> generarAusencias() {
+        ausenciaService.generarAusenciasDesdeFichajes();
+        return ResponseEntity.noContent().build();
     }
 }

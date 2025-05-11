@@ -55,7 +55,8 @@ CREATE TABLE ausencias (
 INSERT INTO grupos (nombre, faltas_totales) VALUES 
 ('Desarrollo', 0),
 ('Marketing', 0),
-('Administración', 0);
+('Administración', 0),
+('Sin Asignar', 0);
 
 INSERT INTO usuarios (nombre, apellido1, apellido2, email, contrasena, rol, grupo_id, estado) VALUES
 ('Juan', 'Pérez', 'Gómez', 'juan.perez@example.com', 'hashedpassword1', 'jefe', 1, 'activo'),

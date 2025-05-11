@@ -1,7 +1,7 @@
 package com.example.riberrepublicfichajeapi.service;
 
-import com.example.riberrepublicfichajeapi.dto.AbrirFichajeHoyDTO;
-import com.example.riberrepublicfichajeapi.dto.TotalHorasHoyDTO;
+import com.example.riberrepublicfichajeapi.dto.fichaje.AbrirFichajeHoyDTO;
+import com.example.riberrepublicfichajeapi.dto.fichaje.TotalHorasHoyDTO;
 import com.example.riberrepublicfichajeapi.mapper.FichajeMapper;
 import com.example.riberrepublicfichajeapi.model.Fichaje;
 import com.example.riberrepublicfichajeapi.model.Usuario;
@@ -14,7 +14,6 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class FichajeService {

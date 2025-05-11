@@ -1,14 +1,10 @@
 package com.example.riberrepublicfichajeapi.controller;
 
-import com.example.riberrepublicfichajeapi.dto.HorarioHoyDTO;
+import com.example.riberrepublicfichajeapi.dto.horario.HorarioHoyDTO;
 import com.example.riberrepublicfichajeapi.dto.usuario.CambiarContrasenaDTO;
 import com.example.riberrepublicfichajeapi.dto.usuario.LoginRequestDTO;
 import com.example.riberrepublicfichajeapi.dto.usuario.UsuarioDTO;
-import com.example.riberrepublicfichajeapi.model.Grupo;
-import com.example.riberrepublicfichajeapi.model.Horario;
 import com.example.riberrepublicfichajeapi.model.Usuario;
-import com.example.riberrepublicfichajeapi.service.GrupoService;
-import com.example.riberrepublicfichajeapi.service.HorarioService;
 import com.example.riberrepublicfichajeapi.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,8 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.persistence.EntityNotFoundException;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
