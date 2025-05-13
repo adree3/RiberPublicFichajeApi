@@ -1,11 +1,9 @@
 package com.example.riberrepublicfichajeapi.service;
 
-import com.example.riberrepublicfichajeapi.dto.grupo.ActualizarGrupoDTO;
-import com.example.riberrepublicfichajeapi.mapper.GrupoMapper;
+import com.example.riberrepublicfichajeapi.dto.grupo.CrearActualizarGrupoDTO;
 import com.example.riberrepublicfichajeapi.model.Grupo;
 import com.example.riberrepublicfichajeapi.model.Usuario;
 import com.example.riberrepublicfichajeapi.repository.GrupoRepository;
-import com.example.riberrepublicfichajeapi.repository.HorarioRepository;
 import com.example.riberrepublicfichajeapi.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 
@@ -32,11 +30,29 @@ public class GrupoService {
         return grupoRepository.findById(id).orElse(null);
     }
 
-    public void crearGrupo(Grupo grupo) {
-        grupoRepository.save(grupo);
+    /**
+     * Crea un grupo con el nombre recibido y asigna los usuarios recibidos al grupo creado.
+     *
+     * @param crearActualizarGrupoDTO dto con el nombre y la lista de usuariosIds
+     * @return devuelve el grupo creado
+     */
+    public Grupo crearGrupo(CrearActualizarGrupoDTO crearActualizarGrupoDTO) {
+        // Creo un grupo y le asigno el nombre y el numFaltas
+        Grupo grupo = new Grupo();
+        grupo.setNombre(crearActualizarGrupoDTO.getNombre().trim());
+        grupo.setFaltasTotales(0);
+        final Grupo nuevoGrupo = grupoRepository.save(grupo);
+
+        // Si hay usuariosIds asignados al grupo, convierto esos ids a usuarios y les asigno el grupo creado
+        if (!crearActualizarGrupoDTO.getUsuariosIds().isEmpty()) {
+            List<Usuario> usuarios = usuarioRepository.findAllById(crearActualizarGrupoDTO.getUsuariosIds());
+            usuarios.forEach(u -> u.setGrupo(nuevoGrupo));
+            usuarioRepository.saveAll(usuarios);
+        }
+        return nuevoGrupo;
     }
 
-    public Grupo actualizarGrupo(int grupoId, ActualizarGrupoDTO actualizarGrupoDTO) {
+    public Grupo actualizarGrupo(int grupoId, CrearActualizarGrupoDTO actualizarGrupoDTO) {
         // se coge el grupo con el id que se recibe
         Grupo grupo = grupoRepository.findById(grupoId)
                 .orElseThrow(() -> new IllegalArgumentException("Grupo no encontrado: " + grupoId));

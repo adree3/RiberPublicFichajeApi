@@ -1,12 +1,16 @@
 package com.example.riberrepublicfichajeapi.service;
 
+import com.example.riberrepublicfichajeapi.dto.horario.EditarHorarioDTO;
 import com.example.riberrepublicfichajeapi.dto.horario.HorarioDTO;
 import com.example.riberrepublicfichajeapi.dto.horario.HorarioHoyDTO;
 import com.example.riberrepublicfichajeapi.mapper.HorarioMapper;
+import com.example.riberrepublicfichajeapi.model.Grupo;
 import com.example.riberrepublicfichajeapi.model.Horario;
+import com.example.riberrepublicfichajeapi.repository.GrupoRepository;
 import com.example.riberrepublicfichajeapi.repository.HorarioRepository;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityNotFoundException;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.List;
@@ -15,17 +19,17 @@ import java.util.List;
 public class HorarioService {
 
     private final HorarioRepository horarioRepository;
-    private final HorarioMapper horarioMapper;
+    private final GrupoRepository grupoRepository;
 
-    public HorarioService(HorarioRepository horarioRepository, HorarioMapper horarioMapper) {
+
+    public HorarioService(HorarioRepository horarioRepository, GrupoRepository grupoRepository) {
         this.horarioRepository = horarioRepository;
-        this.horarioMapper = horarioMapper;
+        this.grupoRepository = grupoRepository;
     }
 
-    public Horario obtenerHorarioPorId(int id) {
-        return horarioRepository.findById(id).orElse(null);
+    public List<Horario> getHorariosPorGrupo(int grupoId) {
+        return horarioRepository.findByGrupoId(grupoId);
     }
-
     public void crearHorario(Horario horario) {
         horarioRepository.save(horario);
     }
@@ -50,23 +54,44 @@ public class HorarioService {
         return new HorarioHoyDTO(entrada.toString(),salida.toString(), horasEstimadas);
     }
 
-    public HorarioDTO editarHorario(int id, HorarioDTO horarioDTO) {
-        Horario horarioExistente = horarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Horario no encontrado"));
-        horarioExistente.setDia(Horario.Dia.valueOf(horarioDTO.getDia()));
-        horarioExistente.setHoraEntrada(horarioDTO.getHoraEntrada());
-        horarioExistente.setHoraSalida(horarioDTO.getHoraSalida());
+    /**
+     * Actualiza el dia, fecha entrada, fecha salida y grupo de un horario
+     *
+     * @param id id del horario a modificar
+     * @param editarHorarioDTO dto con el dia, fecha, y idgrupo para modificar
+     * @return devuelve el horario modificado
+     */
+    public Horario editarHorario(int id, EditarHorarioDTO editarHorarioDTO) {
+        Horario horario = horarioRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Horario no encontrado"));
 
-        Horario horarioActualizado= horarioRepository.save(horarioExistente);
-        return horarioMapper.toDTO(horarioActualizado);
+        Horario.Dia nuevoDia = Horario.Dia.valueOf(editarHorarioDTO.getDia());
+        Integer nuevoGrupoId = editarHorarioDTO.getGrupoId();
+
+        // comprobar si ya existe un horario para ese dia y grupo, sin contar el actual
+        horarioRepository.findByGrupoIdAndDia(nuevoGrupoId, nuevoDia)
+                .filter(h -> !h.getId().equals(id))
+                .ifPresent(h -> {
+                    throw new IllegalStateException(
+                            "Ya existe un horario para " + nuevoDia + " en ese grupo");
+                });
+
+        horario.setDia(nuevoDia);
+        horario.setHoraEntrada(LocalTime.parse(editarHorarioDTO.getHoraEntrada()));
+        horario.setHoraSalida(LocalTime.parse(editarHorarioDTO.getHoraSalida()));
+        Grupo grupo = grupoRepository.findById(nuevoGrupoId)
+                .orElse(grupoRepository.findByNombre("Sin Asignar")
+                        .orElseThrow(() -> new EntityNotFoundException("Grupo no encontrado")));
+
+        horario.setGrupo(grupo);
+        return horarioRepository.save(horario);
     }
 
     public void eliminarHorario(int id) {
-        if (horarioRepository.existsById(id)) {
-            horarioRepository.deleteById(id);
-        }else {
+        if (!horarioRepository.existsById(id)) {
             throw new RuntimeException("Horario no encontrado");
         }
+        horarioRepository.deleteById(id);
     }
 
     public List<Horario> getHorarios() {

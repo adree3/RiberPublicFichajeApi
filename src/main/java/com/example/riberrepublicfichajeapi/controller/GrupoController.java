@@ -1,7 +1,8 @@
 package com.example.riberrepublicfichajeapi.controller;
 
-import com.example.riberrepublicfichajeapi.dto.grupo.ActualizarGrupoDTO;
+import com.example.riberrepublicfichajeapi.dto.grupo.CrearActualizarGrupoDTO;
 import com.example.riberrepublicfichajeapi.dto.grupo.GrupoDTO;
+import com.example.riberrepublicfichajeapi.dto.grupo.RespuestaCrearGrupoDTO;
 import com.example.riberrepublicfichajeapi.model.*;
 import com.example.riberrepublicfichajeapi.service.GrupoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,7 +14,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/grupos")
@@ -40,27 +43,30 @@ public class GrupoController {
         }
     }
 
-    @PostMapping("/nuevoGrupo")
-    @Operation(summary = "Crear un nuevo grupo", description = "Crear un nuevo grupo")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "grupo creado correctamente"),
-            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
-            @ApiResponse(responseCode = "404", description = "No se pudo crear el grupo")
+    @PostMapping("/crearGrupo")
+    @Operation(summary = "Crear grupo", description = "Crea un nuevo grupo y asigna usuarios a este grupo")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Grupo creado"),
+            @ApiResponse(responseCode = "400", description = "No se pudo crear el grupo")
     })
-    public ResponseEntity<String> crearGrupo(
-            @RequestBody GrupoDTO grupoDTO
-    ) {
-        try {
-            Grupo nuevoGrupo =new Grupo();
-            nuevoGrupo.setNombre(grupoDTO.getNombre());
-            nuevoGrupo.setFaltasTotales(grupoDTO.getFaltasTotales());
-            grupoService.crearGrupo(nuevoGrupo);
-            return ResponseEntity.status(HttpStatus.CREATED).body("grupo creado");
+    public ResponseEntity<RespuestaCrearGrupoDTO> crearGrupo(@RequestBody CrearActualizarGrupoDTO crearActualizarGrupoDTO) {
+        // Creo el grupo con el nombre y los usuariosids recibidos
+        Grupo nuevoGrupo = grupoService.crearGrupo(crearActualizarGrupoDTO);
+        // Devuelvo el grupo con el id, nombre y usuariosIds
+        RespuestaCrearGrupoDTO respuesta = new RespuestaCrearGrupoDTO(
+                nuevoGrupo.getId(),
+                nuevoGrupo.getNombre(),
+                nuevoGrupo.getUsuarios() == null
+                        ? Collections.emptyList()
+                        : nuevoGrupo.getUsuarios()
+                        .stream()
+                        .map(Usuario::getId)
+                        .collect(Collectors.toList())
+        );
 
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error al crear el grupo", e);
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(respuesta);
     }
+
 
     @PutMapping("/editarGrupo/{id}")
     @Operation(summary = "Actualizar grupo", description = "Modifica nombre y usuarios de un grupo")
@@ -71,7 +77,7 @@ public class GrupoController {
     })
     public ResponseEntity<Grupo> actualizarGrupo(
             @PathVariable("id") int id,
-            @RequestBody ActualizarGrupoDTO actualizarGrupoDTO
+            @RequestBody CrearActualizarGrupoDTO actualizarGrupoDTO
     ) {
         Grupo updated = grupoService.actualizarGrupo(id, actualizarGrupoDTO);
         return ResponseEntity.ok(updated);

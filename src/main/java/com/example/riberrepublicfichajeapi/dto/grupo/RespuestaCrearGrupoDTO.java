@@ -11,7 +11,8 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ActualizarGrupoDTO {
+public class RespuestaCrearGrupoDTO {
+    private Integer id;
     private String nombre;
     private List<Integer> usuariosIds;
 }

@@ -1,5 +1,6 @@
 package com.example.riberrepublicfichajeapi.controller;
 
+import com.example.riberrepublicfichajeapi.dto.horario.EditarHorarioDTO;
 import com.example.riberrepublicfichajeapi.dto.horario.HorarioDTO;
 import com.example.riberrepublicfichajeapi.model.Grupo;
 import com.example.riberrepublicfichajeapi.model.Horario;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -35,12 +37,18 @@ public class HorarioController {
             @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
             @ApiResponse(responseCode = "404", description = "No se encontraron horarios")
     })
-    public List<Horario> getFichajes() {
+    public List<Horario> getHorarios() {
         try {
             return horarioService.getHorarios();
         }catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error al obtener todos los horarios", e);
         }
+    }
+
+    @GetMapping("/{idGrupo}/grupo")
+    @Operation(summary = "Obtener horarios de un grupo")
+    public List<Horario> getHorariosPorGrupo(@PathVariable int idGrupo) {
+        return horarioService.getHorariosPorGrupo(idGrupo);
     }
 
     @PostMapping("/nuevaHorario")
@@ -71,6 +79,39 @@ public class HorarioController {
 
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error al crear el horario", e);
+        }
+    }
+
+    @PutMapping("/editarHorario/{id}")
+    @Operation(summary = "Modificar un horario", description = "Actualiza día, horas y grupo de un horario")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Horario actualizado correctamente"),
+            @ApiResponse(responseCode = "404", description = "Horario o grupo no encontrado"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos")
+    })
+    public ResponseEntity<Horario> editarHorario(
+            @PathVariable int id,
+            @RequestBody @Valid EditarHorarioDTO editarHorarioDTO
+    ) {
+        Horario horarioeditado = horarioService.editarHorario(id, editarHorarioDTO);
+        return ResponseEntity.ok(horarioeditado);
+    }
+
+    @DeleteMapping("/eliminarHorario/{id}")
+    @Operation(summary = "Eliminar un horario", description = "Elimina el horario con el ID recibido")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Horario eliminado"),
+            @ApiResponse(responseCode = "404", description = "Horario no encontrado"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta")
+    })
+    public ResponseEntity<Void> eliminarHorario(
+            @PathVariable @Parameter(description = "ID del horario") int id
+    ) {
+        try {
+            horarioService.eliminarHorario(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Horario no encontrado", e);
         }
     }
 }

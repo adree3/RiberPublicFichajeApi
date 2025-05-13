@@ -53,7 +53,7 @@ public class UsuarioService {
     }
 
     /**
-     * Obtiene el horario de hoy de un usuario que se pasa por parametro, sino se pasa un horario default.
+     * Obtiene el horario de hoy por el id del Usuario que recibe, si no tiene horario se le pasa uno default
      *
      * @param idUsuario id del usuario para devolver su horario
      * @return devuevlve el horario del usuario
@@ -79,12 +79,10 @@ public class UsuarioService {
             return horarioService.buildDefaultHorarioDTO();
         }
 
-        Horario horario = horarioRepository.findByGrupoIdAndDia(grupo.getId(), diaEnum);
-        if (horario == null) {
-            return horarioService.buildDefaultHorarioDTO();
-        } else {
-            return horarioService.toDto(horario);
-        }
+        return horarioRepository
+                .findByGrupoIdAndDia(grupo.getId(), diaEnum)
+                .map(horarioService::toDto)
+                .orElseGet(horarioService::buildDefaultHorarioDTO);
     }
 
 
