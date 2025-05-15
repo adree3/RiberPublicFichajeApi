@@ -16,4 +16,5 @@ public interface HorarioRepository extends JpaRepository<Horario, Integer> {
 
     Optional<Horario> findFirstByGrupoIdAndDia(Integer grupoId, Horario.Dia dia);
 
+    List<Horario> findByDia(Horario.Dia dia);
 }

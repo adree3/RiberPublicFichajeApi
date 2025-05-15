@@ -12,10 +12,7 @@ import com.example.riberrepublicfichajeapi.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -81,8 +78,9 @@ public class AusenciaService {
      * - Si no tiene asignada hora de salida
      * - Si no ha llegado a las horas estimadas a trabajar
      * - Si no ha usado nfc para fichar
-     * <p>
-     * Antes de eso comprueba si ya existe una ausencia para ese usuario y ese dia
+     * - Si no ha registrado un fichaje cuando le tocaba
+     *
+     * Antes de eso comprueba si ya existe una ausencia para ese usuario y ese día
      */
     public void generarAusenciasDesdeFichajes() {
         List<Fichaje> listaFichajes = fichajeRepository.findAll();
@@ -148,8 +146,8 @@ public class AusenciaService {
                 }
             }
             // Comprueba si se ha usado el nfc en algun fichaje de ese dia del usuario
-            boolean nfcUsadoEnAlguno = fichajes.stream()
-                    .anyMatch(Fichaje::isNfcUsado);
+            boolean todosUsaronNfc = fichajes.stream()
+                    .allMatch(Fichaje::isNfcUsado);
 
             Usuario usuario = usuarioRepository.findById(usuarioId)
                     .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + usuarioId));
@@ -171,11 +169,51 @@ public class AusenciaService {
                 }
             }
             // si no se ha usado el nfc
-            if (!nfcUsadoEnAlguno) {
+            if (!todosUsaronNfc) {
                 detalles = "No se utilizo el nfc para fichar";
             }
             if (!detalles.isEmpty()) {
                 crearAusenciaDetalles(fecha, usuario, detalles);
+            }
+        }
+        // Generar ausencias para usuarios que no han fichado ningún día que su grupo debía trabajar hoy
+        LocalDate hoy = LocalDate.now();
+        DayOfWeek dowHoy = hoy.getDayOfWeek();
+
+        // Mapeo de los dias de la semana de Java a tu enum Horario.Dia
+        Map<Horario.Dia, DayOfWeek> diaMap = Map.of(
+                Horario.Dia.lunes,    DayOfWeek.MONDAY,
+                Horario.Dia.martes,    DayOfWeek.TUESDAY,
+                Horario.Dia.miercoles, DayOfWeek.WEDNESDAY,
+                Horario.Dia.jueves,    DayOfWeek.THURSDAY,
+                Horario.Dia.viernes,   DayOfWeek.FRIDAY
+        );
+        Horario.Dia diaEnumHoy = diaMap.entrySet().stream()
+                .filter(e -> e.getValue() == dowHoy)
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(null);
+
+        if (diaEnumHoy != null) {
+            // Obtengo todos los horarios que existan para este día
+            List<Horario> horariosHoy = horarioRepository.findByDia(diaEnumHoy);
+            for (Horario horario : horariosHoy) {
+                // Todos los usuarios de ese grupo
+                List<Usuario> usuariosGrupo = usuarioRepository.findByGrupoId(horario.getGrupo().getId());
+                for (Usuario usuario : usuariosGrupo) {
+                    // Si ya existe ausencia hoy, salto
+                    if (ausenciaRepository.existsByUsuarioIdAndFecha(usuario.getId(), hoy)) {
+                        continue;
+                    }
+                    // Si NO hay ningún fichaje hoy para ese usuario
+                    LocalDateTime inicio = hoy.atStartOfDay();
+                    LocalDateTime fin    = hoy.plusDays(1).atStartOfDay().minusNanos(1);
+                    boolean fichoHoy = fichajeRepository
+                            .existsByUsuarioIdAndFechaHoraEntradaBetween(usuario.getId(), inicio, fin);
+                    if (!fichoHoy) {
+                        crearAusenciaDetalles(hoy, usuario, "No registró ningún fichaje");
+                    }
+                }
             }
         }
     }

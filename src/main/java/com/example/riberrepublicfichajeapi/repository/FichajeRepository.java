@@ -5,6 +5,7 @@ import com.example.riberrepublicfichajeapi.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -20,5 +21,5 @@ public interface FichajeRepository extends JpaRepository<Fichaje, Integer> {
 
     List<Fichaje> findAllByUsuarioAndFechaHoraEntradaBetween(Usuario usuario, LocalDateTime inicioHoy, LocalDateTime inicioManana);
 
-
+    boolean existsByUsuarioIdAndFechaHoraEntradaBetween(int usuarioId, LocalDateTime inicioDia, LocalDateTime finDia);
 }
