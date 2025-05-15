@@ -118,9 +118,9 @@ public class FichajeController {
             @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
             @ApiResponse(responseCode = "404", description = "Fichaje no cerrado(editado)")
     })
-    public ResponseEntity<Fichaje> cerrarFichajeHoy(@PathVariable int idUsuario) {
+    public ResponseEntity<Fichaje> cerrarFichajeHoy(@PathVariable int idUsuario, @RequestParam boolean nfcUsado) {
         try {
-            Fichaje fichaje = fichajeService.cerrarFichajeHoy(idUsuario);
+            Fichaje fichaje = fichajeService.cerrarFichajeHoy(idUsuario, nfcUsado);
             return ResponseEntity.ok(fichaje);
         } catch (EntityNotFoundException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

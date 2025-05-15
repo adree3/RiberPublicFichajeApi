@@ -51,36 +51,22 @@ public class HorarioController {
         return horarioService.getHorariosPorGrupo(idGrupo);
     }
 
-    @PostMapping("/nuevaHorario")
+    @PostMapping("/nuevoHorario")
     @Operation(summary = "Crear un nuevo horario", description = "Crear un nuevo horario")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "horario creado correctamente"),
             @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
             @ApiResponse(responseCode = "404", description = "No se pudo crear el horario")
     })
-    public ResponseEntity<String> crearHorario(
-            @RequestParam @Parameter(description = "Id del grupo", example = "1") int idGrupo,
-            @RequestBody HorarioDTO horarioDTO
+    public ResponseEntity<Horario> crearHorario(
+            @RequestParam int idGrupo,
+            @Valid @RequestBody HorarioDTO horarioDTO
     ) {
-        try {
-            Grupo grupo = grupoService.obtenerGrupoPorId(idGrupo);
-            if (grupo != null) {
-                Horario horario = new Horario();
-                horario.setGrupo(grupo);
-                horario.setDia(Horario.Dia.valueOf(horarioDTO.getDia()));
-                horario.setHoraEntrada(horarioDTO.getHoraEntrada());
-                horario.setHoraSalida(horarioDTO.getHoraSalida());
-                horarioService.crearHorario(horario);
-                return ResponseEntity.status(HttpStatus.CREATED).body("horario creado");
-
-            }else {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontro el grupo");
-            }
-
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error al crear el horario", e);
-        }
+        Horario nuevoHorario = horarioService.crearHorario(idGrupo, horarioDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoHorario);
     }
+
+
 
     @PutMapping("/editarHorario/{id}")
     @Operation(summary = "Modificar un horario", description = "Actualiza día, horas y grupo de un horario")

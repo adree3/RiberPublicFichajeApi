@@ -11,9 +11,11 @@ import com.example.riberrepublicfichajeapi.repository.HorarioRepository;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import javax.swing.text.html.Option;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class HorarioService {
@@ -30,8 +32,31 @@ public class HorarioService {
     public List<Horario> getHorariosPorGrupo(int grupoId) {
         return horarioRepository.findByGrupoId(grupoId);
     }
-    public void crearHorario(Horario horario) {
-        horarioRepository.save(horario);
+
+    /**
+     * Crea un horario por los parametros recibidos y añadiendole el grupo, sino le asigna uno por defecto.
+     *
+     * @param idGrupo grupo al que se le asigna
+     * @param horarioDTO parametros para crear el horario
+     * @return devuelve el horario creado
+     */
+    public Horario crearHorario(int idGrupo, HorarioDTO horarioDTO) {
+        Grupo grupo = grupoRepository.findById(idGrupo)
+                .orElse(grupoRepository.findByNombre("Sin Asignar")
+                        .orElseThrow(() -> new EntityNotFoundException("Grupo no encontrado")));
+
+        horarioRepository.findFirstByGrupoIdAndDia(idGrupo, Horario.Dia.valueOf(horarioDTO.getDia()))
+                .ifPresent(h -> {
+                    throw new IllegalStateException("Ya existe un horario para ese día");
+                });
+        Horario.Dia diaEnum = Horario.Dia.valueOf(horarioDTO.getDia());
+        Horario horario = new Horario();
+        horario.setGrupo(grupo);
+        horario.setDia(diaEnum);
+        horario.setHoraEntrada(horarioDTO.getHoraEntrada());
+        horario.setHoraSalida(horarioDTO.getHoraSalida());
+
+        return horarioRepository.save(horario);
     }
 
     public HorarioHoyDTO toDto(Horario horario) {
@@ -69,7 +94,7 @@ public class HorarioService {
         Integer nuevoGrupoId = editarHorarioDTO.getGrupoId();
 
         // comprobar si ya existe un horario para ese dia y grupo, sin contar el actual
-        horarioRepository.findByGrupoIdAndDia(nuevoGrupoId, nuevoDia)
+        horarioRepository.findFirstByGrupoIdAndDia(nuevoGrupoId, nuevoDia)
                 .filter(h -> !h.getId().equals(id))
                 .ifPresent(h -> {
                     throw new IllegalStateException(

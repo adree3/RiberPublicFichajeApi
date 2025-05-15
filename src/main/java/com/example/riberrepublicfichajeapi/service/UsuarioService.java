@@ -53,36 +53,41 @@ public class UsuarioService {
     }
 
     /**
-     * Obtiene el horario de hoy por el id del Usuario que recibe, si no tiene horario se le pasa uno default
+     * Obtiene el horario de hoy por el id del Usuario que recibe
      *
      * @param idUsuario id del usuario para devolver su horario
      * @return devuevlve el horario del usuario
      */
     public HorarioHoyDTO obtenerHorarioHoy(int idUsuario) {
         Usuario usuario = usuarioRepository.findById(idUsuario)
-                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Usuario no encontrado"));
 
         Grupo grupo = usuario.getGrupo();
         if (grupo == null) {
-            throw new EntityNotFoundException("Usuario sin grupo");
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Usuario sin grupo asignado");
         }
+
         DayOfWeek diaSemana = LocalDate.now().getDayOfWeek();
-        Horario.Dia diaEnum = switch (diaSemana) {
-            case MONDAY -> Horario.Dia.lunes;
-            case TUESDAY -> Horario.Dia.martes;
-            case WEDNESDAY -> Horario.Dia.miercoles;
-            case THURSDAY -> Horario.Dia.jueves;
-            case FRIDAY -> Horario.Dia.viernes;
-            default -> null;
-        };
-        if (diaEnum == null) {
-            return horarioService.buildDefaultHorarioDTO();
+        Horario.Dia diaEnum;
+        switch (diaSemana) {
+            case MONDAY   -> diaEnum = Horario.Dia.lunes;
+            case TUESDAY  -> diaEnum = Horario.Dia.martes;
+            case WEDNESDAY-> diaEnum = Horario.Dia.miercoles;
+            case THURSDAY -> diaEnum = Horario.Dia.jueves;
+            case FRIDAY   -> diaEnum = Horario.Dia.viernes;
+            default -> throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "No hay horario: fin de semana (" + diaSemana + ")");
         }
 
         return horarioRepository
-                .findByGrupoIdAndDia(grupo.getId(), diaEnum)
+                .findFirstByGrupoIdAndDia(grupo.getId(), diaEnum)
                 .map(horarioService::toDto)
-                .orElseGet(horarioService::buildDefaultHorarioDTO);
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "No hay horario para el grupo " + grupo.getNombre() +
+                                " el día " + diaEnum));
     }
 
 

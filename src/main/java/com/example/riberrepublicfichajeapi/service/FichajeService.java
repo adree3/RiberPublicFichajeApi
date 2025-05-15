@@ -91,7 +91,7 @@ public class FichajeService {
      * @param idUsuario recibe el id para encontrar el fichaje abierto
      * @return devuelve el fichaje cerrado
      */
-    public Fichaje cerrarFichajeHoy(int idUsuario) {
+    public Fichaje cerrarFichajeHoy(int idUsuario, boolean nfcUsado) {
         Usuario usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
@@ -103,6 +103,7 @@ public class FichajeService {
                 .orElseThrow(() -> new IllegalStateException("No hay jornada abierta hoy"));
 
         fichaje.setFechaHoraSalida(LocalDateTime.now());
+        fichaje.setNfcUsado(nfcUsado);                // ← marcamos si fue por NFC
         return fichajeRepository.save(fichaje);
     }
 
