@@ -77,8 +77,8 @@ INSERT INTO usuarios (nombre, apellido1, apellido2, email, contrasena, rol, grup
 ('Nuria', 'Castro', 'Ramos', 'nuria.castro@educa.jcyl.es', '$2a$10$iiiiiiiiiiiiiiiiiiiiiiiiiiiiii', 'empleado', 7, 'activo'),
 ('Héctor', 'Prieto', NULL, 'hector.prieto@educa.jcyl.es', '$2a$10$jjjjjjjjjjjjjjjjjjjjjjjjjjjjjj', 'jefe', 4, 'activo'),
 ('Isabel', 'Reyes', 'Ortiz', 'isabel.reyes@educa.jcyl.es', '$2a$10$kkkkkkkkkkkkkkkkkkkkkkkkkkkkkk', 'empleado', 3, 'activo'),
-('Pepe', 'García', 'Núñez', 'pepe@educa.jcyl.es', '$2a$10$hY9gNCuI22S2jQ.weTL/f.Bs4PeKE.49iFu9kZpK/bFG4v2JU1E4y', 'empleado', 3, 'activo'),
-('Adrian', 'Alonso', 'Perez', 'adrian@educa.jcyl.es', '$2a$10$eygJqaTFHiNwQm.21tOwOelL9i.M8B2j8yV30MRo8ImX2KYGzbpm6', 'jefe', 3, 'activo');
+('Pepe', 'García', 'Núñez', 'pepe@educa.jcyl.es', '$2a$10$VZKnGnSF9VP6wZBh847O5Oh/5Ki3GJUYoLvEIHuXQxuoWdcdp5edK', 'empleado', 3, 'activo'),
+('Adrian', 'Alonso', 'Perez', 'adrian@educa.jcyl.es', '$2a$10$VZKnGnSF9VP6wZBh847O5Oh/5Ki3GJUYoLvEIHuXQxuoWdcdp5edK', 'jefe', 3, 'activo');
 
 INSERT INTO horarios (grupo_id, dia, hora_entrada, hora_salida) VALUES
 (5, 'lunes',    '08:30:00', '16:30:00'),

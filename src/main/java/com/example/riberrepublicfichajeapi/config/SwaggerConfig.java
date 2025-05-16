@@ -17,23 +17,12 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .components(new Components())
-                .info(new Info().title("API RiberRepublicFichaje")
-                        .description("API de la aplicación de RiberRepublicFichaje")
+                .info(new Info().title("API RiberPepublicFichaje")
+                        .description("API de la aplicación de RiberPepublicFichaje")
                         .contact(new Contact()
                                 .name("Adrian")
                                 .email("adrianalonso200@gmail.com")
                                 .url("https://adrian.com"))
                         .version("1.0"));
-    }
-
-    // Configuración de seguridad para desactivar autenticación
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                );
-        return http.build();
     }
 }

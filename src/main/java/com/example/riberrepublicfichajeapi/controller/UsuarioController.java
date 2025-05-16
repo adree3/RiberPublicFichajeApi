@@ -3,8 +3,10 @@ package com.example.riberrepublicfichajeapi.controller;
 import com.example.riberrepublicfichajeapi.dto.horario.HorarioHoyDTO;
 import com.example.riberrepublicfichajeapi.dto.usuario.CambiarContrasenaDTO;
 import com.example.riberrepublicfichajeapi.dto.usuario.LoginRequestDTO;
+import com.example.riberrepublicfichajeapi.dto.usuario.LoginResponseDTO;
 import com.example.riberrepublicfichajeapi.dto.usuario.UsuarioDTO;
 import com.example.riberrepublicfichajeapi.model.Usuario;
+import com.example.riberrepublicfichajeapi.security.JwtTokenProvider;
 import com.example.riberrepublicfichajeapi.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,9 +28,12 @@ import java.util.List;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
+    private final JwtTokenProvider jwtProvider;
 
-    public UsuarioController(UsuarioService usuarioService) {
+
+    public UsuarioController(UsuarioService usuarioService, JwtTokenProvider jwtProvider) {
         this.usuarioService = usuarioService;
+        this.jwtProvider = jwtProvider;
     }
 
 
@@ -98,14 +103,17 @@ public class UsuarioController {
             @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
             @ApiResponse(responseCode = "401", description = "Credenciales inválidas")
     })
-    public ResponseEntity<Usuario> login(@RequestBody LoginRequestDTO loginRequest) {
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequest) {
         try {
             Usuario usuario = usuarioService.login(loginRequest);
-            if (usuario != null) {
-                return ResponseEntity.ok(usuario);
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
+
+            String token= jwtProvider.createToken(usuario.getEmail(), List.of(usuario.getRol().name()), loginRequest.isRecuerdame());
+
+            return ResponseEntity.ok(new LoginResponseDTO(token, usuario.getId(), usuario.getNombre(),
+                    usuario.getApellido1(), usuario.getApellido2(), usuario.getEmail(),usuario.getRol(), usuario.getEstado()));
+        } catch (BadCredentialsException ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error en el login", e);
         }
