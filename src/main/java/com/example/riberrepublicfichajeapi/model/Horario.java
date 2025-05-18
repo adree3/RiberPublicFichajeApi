@@ -37,7 +37,7 @@ public class Horario {
     private Grupo grupo;
 
     public enum Dia {
-        lunes, martes, miercoles, jueves, viernes
+        lunes, martes, miercoles, jueves, viernes, sabado, domingo
     }
 
     public Horario() {

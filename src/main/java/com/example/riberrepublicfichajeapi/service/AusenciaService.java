@@ -130,6 +130,8 @@ public class AusenciaService {
                 case WEDNESDAY -> Horario.Dia.miercoles;
                 case THURSDAY -> Horario.Dia.jueves;
                 case FRIDAY -> Horario.Dia.viernes;
+                case SATURDAY -> Horario.Dia.sabado;
+                case SUNDAY -> Horario.Dia.domingo;
                 default -> null;
             };
 
@@ -182,11 +184,13 @@ public class AusenciaService {
 
         // Mapeo de los dias de la semana de Java a tu enum Horario.Dia
         Map<Horario.Dia, DayOfWeek> diaMap = Map.of(
-                Horario.Dia.lunes,    DayOfWeek.MONDAY,
-                Horario.Dia.martes,    DayOfWeek.TUESDAY,
+                Horario.Dia.lunes, DayOfWeek.MONDAY,
+                Horario.Dia.martes, DayOfWeek.TUESDAY,
                 Horario.Dia.miercoles, DayOfWeek.WEDNESDAY,
-                Horario.Dia.jueves,    DayOfWeek.THURSDAY,
-                Horario.Dia.viernes,   DayOfWeek.FRIDAY
+                Horario.Dia.jueves, DayOfWeek.THURSDAY,
+                Horario.Dia.viernes, DayOfWeek.FRIDAY,
+                Horario.Dia.sabado, DayOfWeek.SATURDAY,
+                Horario.Dia.domingo, DayOfWeek.SUNDAY
         );
         Horario.Dia diaEnumHoy = diaMap.entrySet().stream()
                 .filter(e -> e.getValue() == dowHoy)

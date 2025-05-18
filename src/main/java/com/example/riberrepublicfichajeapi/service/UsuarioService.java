@@ -77,9 +77,10 @@ public class UsuarioService {
             case WEDNESDAY-> diaEnum = Horario.Dia.miercoles;
             case THURSDAY -> diaEnum = Horario.Dia.jueves;
             case FRIDAY   -> diaEnum = Horario.Dia.viernes;
+            case SATURDAY   -> diaEnum = Horario.Dia.sabado;
+            case SUNDAY   -> diaEnum = Horario.Dia.domingo;
             default -> throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "No hay horario: fin de semana (" + diaSemana + ")");
+                    HttpStatus.NOT_FOUND);
         }
 
         return horarioRepository
