@@ -25,14 +25,30 @@ public class FichajeService {
         this.usuarioRepository = usuarioRepository;
     }
 
+    /**
+     * Obtiene todos los fichajes.
+     *
+     * @return la lista de fichajes
+     */
     public List<Fichaje> getFichajes() {
         return fichajeRepository.findAll();
     }
 
+    /**
+     * Obtiene los fichajes de un usuario.
+     *
+     * @param usuario del que quieres sacar los fichajes
+     * @return devuelve una lista de fichajes
+     */
     public List<Fichaje> getFichajesPorUsuario(Usuario usuario) {
         return fichajeRepository.findFichajesByUsuario(usuario);
     }
 
+    /**
+     * Obtiene las horas trabajadas de un usuario hoy.
+     * @param idUsuario identificador del usuario.
+     * @return devuelve las horas trabajadas hoy
+     */
     public TotalHorasHoyDTO getTotalHorasHoy(int idUsuario) {
         Usuario usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
@@ -83,7 +99,7 @@ public class FichajeService {
     }
 
     /**
-     * Cierra el ultimo fichaje abierto de hoy.
+     * Cierra el último fichaje abierto de hoy.
      *
      * @param idUsuario recibe el id para encontrar el fichaje abierto
      * @return devuelve el fichaje cerrado
@@ -100,7 +116,7 @@ public class FichajeService {
                 .orElseThrow(() -> new IllegalStateException("No hay jornada abierta hoy"));
 
         fichaje.setFechaHoraSalida(LocalDateTime.now());
-        fichaje.setNfcUsado(nfcUsado);                // ← marcamos si fue por NFC
+        fichaje.setNfcUsado(nfcUsado);
         return fichajeRepository.save(fichaje);
     }
 

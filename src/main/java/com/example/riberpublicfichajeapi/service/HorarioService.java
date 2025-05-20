@@ -26,6 +26,19 @@ public class HorarioService {
         this.grupoRepository = grupoRepository;
     }
 
+    /**
+     * Obtiene todos los horarios.
+     * @return lista de horarios
+     */
+    public List<Horario> getHorarios() {
+        return horarioRepository.findAll();
+    }
+
+    /**
+     * Obtiene los horarios por un grupo.
+     * @param grupoId identificador del grupo
+     * @return la lista de horarios
+     */
     public List<Horario> getHorariosPorGrupo(int grupoId) {
         return horarioRepository.findByGrupoId(grupoId);
     }
@@ -56,6 +69,11 @@ public class HorarioService {
         return horarioRepository.save(horario);
     }
 
+    /**
+     * Convierte el horario en horarioDTO
+     * @param horario objeto a convertir
+     * @return devuelve el horarioDTO
+     */
     public HorarioHoyDTO toDto(Horario horario) {
         Duration duracion = Duration.between(horario.getHoraEntrada(), horario.getHoraSalida());
         String horasEstimadas = String.format("%02d:%02d:%02d",
@@ -65,22 +83,11 @@ public class HorarioService {
         return new HorarioHoyDTO(horario.getHoraEntrada().toString(), horario.getHoraSalida().toString(), horasEstimadas);
     }
 
-    public HorarioHoyDTO buildDefaultHorarioDTO() {
-        LocalTime entrada = LocalTime.of(9, 0);
-        LocalTime salida  = LocalTime.of(17, 0);
-        Duration duracion = Duration.between(entrada, salida);
-        String horasEstimadas = String.format("%02d:%02d:%02d",
-                duracion.toHours(),
-                duracion.toMinutesPart(),
-                duracion.toSecondsPart());
-        return new HorarioHoyDTO(entrada.toString(),salida.toString(), horasEstimadas);
-    }
-
     /**
-     * Actualiza el dia, fecha entrada, fecha salida y grupo de un horario
+     * Actualiza el día, fecha entrada, fecha salida y grupo de un horario
      *
      * @param id id del horario a modificar
-     * @param editarHorarioDTO dto con el dia, fecha, y idgrupo para modificar
+     * @param editarHorarioDTO dto con el día, fecha e idgrupo para modificar
      * @return devuelve el horario modificado
      */
     public Horario editarHorario(int id, EditarHorarioDTO editarHorarioDTO) {
@@ -109,14 +116,15 @@ public class HorarioService {
         return horarioRepository.save(horario);
     }
 
+    /**
+     * Elimina un horario por su id.
+     *
+     * @param id identificador del horario
+     */
     public void eliminarHorario(int id) {
         if (!horarioRepository.existsById(id)) {
             throw new RuntimeException("Horario no encontrado");
         }
         horarioRepository.deleteById(id);
-    }
-
-    public List<Horario> getHorarios() {
-        return horarioRepository.findAll();
     }
 }

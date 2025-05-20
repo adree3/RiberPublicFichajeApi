@@ -18,5 +18,4 @@ public class AusenciaDTO {
     private boolean justificada;
     private String detalles;
     private LocalDateTime tiempoRegistrado;
-
 }

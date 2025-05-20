@@ -1,6 +1,6 @@
-DROP DATABASE IF EXISTS riberRepublicFichaje;
-CREATE DATABASE riberRepublicFichaje;
-USE riberRepublicFichaje;
+DROP DATABASE IF EXISTS riberPublicFichaje;
+CREATE DATABASE riberPublicFichaje;
+USE riberPublicFichaje;
 
 CREATE TABLE grupos (
     id int auto_increment primary key,
@@ -78,7 +78,9 @@ INSERT INTO usuarios (nombre, apellido1, apellido2, email, contrasena, rol, grup
 ('Héctor', 'Prieto', NULL, 'hector.prieto@educa.jcyl.es', '$2a$10$jjjjjjjjjjjjjjjjjjjjjjjjjjjjjj', 'jefe', 4, 'activo'),
 ('Isabel', 'Reyes', 'Ortiz', 'isabel.reyes@educa.jcyl.es', '$2a$10$kkkkkkkkkkkkkkkkkkkkkkkkkkkkkk', 'empleado', 3, 'activo'),
 ('Pepe', 'García', 'Núñez', 'pepe@educa.jcyl.es', '$2a$10$VZKnGnSF9VP6wZBh847O5Oh/5Ki3GJUYoLvEIHuXQxuoWdcdp5edK', 'empleado', 3, 'activo'),
-('Adrian', 'Alonso', 'Perez', 'adrian@educa.jcyl.es', '$2a$10$VZKnGnSF9VP6wZBh847O5Oh/5Ki3GJUYoLvEIHuXQxuoWdcdp5edK', 'jefe', 3, 'activo');
+('Adrian', 'Alonso', 'Perez', 'adrian@educa.jcyl.es', '$2a$10$VZKnGnSF9VP6wZBh847O5Oh/5Ki3GJUYoLvEIHuXQxuoWdcdp5edK', 'jefe', 3, 'activo'),
+('Administrador', 'Admin', NULL, 'root@educa.jcyl.es', '$2a$10$BAYprOVjM.6FdwS5vlNYU.W.Rs2RSUNgqFG1tLcUN7lBJo2epzPQq', 'jefe', 6, 'activo'),
+('Empleado', 'Emple', NULL, 'empleado@educa.jcyl.es', '$2a$10$WHoqhLia64MX2sYE4KrWVuAy4xYG8JMi4wE1JAP2pcdQB8w7Z4QUW', 'empleado', 6, 'activo');
 
 INSERT INTO horarios (grupo_id, dia, hora_entrada, hora_salida) VALUES
 (5, 'lunes',    '08:30:00', '16:30:00'),
@@ -109,7 +111,8 @@ INSERT INTO fichajes (usuario_id, fecha_hora_entrada, fecha_hora_salida, ubicaci
 (4, '2025-04-01 08:00:00','2025-04-01 16:00:00','Administración', FALSE),
 (4, '2025-04-02 08:05:00','2025-04-02 16:00:00','Administración', TRUE),
 (15, '2025-04-02 08:05:00','2025-04-02 16:00:00','Administración', TRUE),
-(16, '2025-04-02 08:05:00','2025-04-02 16:00:00','Administración', TRUE);
+(16, '2025-04-02 08:05:00','2025-04-02 16:00:00','Administración', TRUE),
+(18, '2025-04-02 08:05:00','2025-04-02 16:00:00','Administración', TRUE);
 
 
 INSERT INTO ausencias (usuario_id, fecha, motivo, estado, justificada, detalles) VALUES 

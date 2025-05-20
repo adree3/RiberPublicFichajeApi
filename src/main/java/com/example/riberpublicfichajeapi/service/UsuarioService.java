@@ -38,18 +38,33 @@ public class UsuarioService {
         this.grupoRepository = grupoRepository;
     }
 
+    /**
+     * Obtiene todos los usuarios.
+     *
+     * @return devuelve una lista de usuarios
+     */
     public List<Usuario> getUsuarios() {
         return usuarioRepository.findAll();
     }
 
+    /**
+     * Obtiene todos los usuarios activos.
+     *
+     * @return devuelve una lista de usuarios
+     */
     public List<Usuario> getUsuariosActivos() {
         return usuarioRepository.findByEstado(Usuario.Estado.activo);
     }
 
 
+    /**
+     * Obtiene el usuario por su id.
+     *
+     * @param id identificador del usuario
+     * @return devuelve el usuario
+     */
     public Usuario obtenerUsuarioPorIdd(int id) {
         return usuarioRepository.findById(id).orElse(null);
-
     }
 
     /**

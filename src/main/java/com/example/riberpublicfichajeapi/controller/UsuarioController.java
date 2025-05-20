@@ -36,7 +36,11 @@ public class UsuarioController {
         this.jwtProvider = jwtProvider;
     }
 
-
+    /**
+     * Obtiene todos los usuarios.
+     *
+     * @return devuelve una lista de usuarios
+     */
     @GetMapping("/")
     @Operation(summary = "Obtener todos los usuarios", description = "Obtener una lista de todos los usuarios")
     @ApiResponses(value = {
@@ -52,6 +56,11 @@ public class UsuarioController {
         }
     }
 
+    /**
+     * Devuelve todos los usuarios activos.
+     *
+     * @return devuelve una lista de usuarios
+     */
     @GetMapping("/activos")
     @Operation(summary = "Obtener todos los usuarios activos o no", description = "Obtener una lista de todos los usuarios segun su estado")
     @ApiResponses(value = {
@@ -63,6 +72,12 @@ public class UsuarioController {
         return usuarioService.getUsuariosActivos();
     }
 
+    /**
+     * Obtiene el horario de hoy para un usuario.
+     *
+     * @param idUsuario identificador del usuario
+     * @return devuelve o un mensaje o el horario del usuaio
+     */
     @GetMapping("/{idUsuario}/horarioHoy")
     @Operation(summary = "Obtener el horario del día para el usuario", description = "Devuelve el horario (hora entrada/salida, horas estimadas) correspondiente al grupo del usuario y el día actual.")
     @ApiResponses(value = {
@@ -80,9 +95,9 @@ public class UsuarioController {
     }
 
     /**
-     * EndPoint que comprueba si existe un email recibido
+     * Comprueba si existe un email recibido.
      *
-     * @param email string a comprobar
+     * @param email email a comparar
      * @return devuelve true si existe o false si no existe
      */
     @GetMapping("/existe")
@@ -96,6 +111,13 @@ public class UsuarioController {
         return ResponseEntity.ok(existe);
     }
 
+    /**
+     * Comprueba que las credenciales del usuario son correctas y crea un token para el usuario.
+     * Si dio a recuerdame el token es de 30 días, si no de 9 horas.
+     *
+     * @param loginRequest email, contraseña y recuerdame
+     * @return devuelve los datos del usuario, menos la contraseña
+     */
     @PostMapping("/login")
     @Operation(summary = "Login de usuario", description = "Permite iniciar sesión con email y contraseña")
     @ApiResponses(value = {
@@ -119,6 +141,13 @@ public class UsuarioController {
         }
     }
 
+    /**
+     * Crea un usuario, por los datos recibidos.
+     *
+     * @param idGrupo identificador del grupo
+     * @param usuarioDTO datos del usuario a crear
+     * @return devuelve el usuario creado
+     */
     @PostMapping("/nuevoUsuario")
     @Operation(summary = "Crear un nuevo usuario", description = "Crear un nuevo usuario")
     @ApiResponses(value = {
@@ -138,6 +167,13 @@ public class UsuarioController {
         }
     }
 
+    /**
+     * Edita la contraseña de un usuario.
+     *
+     * @param idUsuario identificador del usuario
+     * @param cambiarContrasenaDTO la contraseña antigua y la nueva
+     * @return devuelve un mensaje
+     */
     @PutMapping("/{idUsuario}/cambiarContrasena")
     @Operation(summary = "Cambiar la contraseña de un usuario", description = "Verifica la contraseña actual y la reemplaza por la nueva")
     public ResponseEntity<Void> cambiarContrasena(
@@ -152,6 +188,14 @@ public class UsuarioController {
         }
     }
 
+    /**
+     * Edita un usuario con los datos recibidos
+     *
+     * @param id identificador del usuario
+     * @param usuario usuario editado
+     * @param idGrupo nuevo grupo del usuario
+     * @return devuelve el usuario
+     */
     @PutMapping("editarUsuario/{id}")
     @Operation(summary = "Editar un usuario", description = "Editar un usuario")
     @ApiResponses(value = {
@@ -167,6 +211,11 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioEditado);
     }
 
+    /**
+     * Elimina un usuario por el id recibido.
+     * @param id identificador del usuario
+     * @return devuelve un mensaje
+     */
     @DeleteMapping("/eliminarUsuario/{id}")
     @Operation(summary = "Eliminar un usuario", description = "Eliminar el usuario indicado")
     @ApiResponses(value = {

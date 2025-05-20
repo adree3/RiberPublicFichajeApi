@@ -32,6 +32,13 @@ public class JwtTokenProvider {
         this.userDetailsService = uds;
     }
 
+    /**
+     * Crea el token con las especificaciones recibidas.
+     *
+     * @param username nombre del usuario
+     * @param recuerdame boolean para extender el Token
+     * @return devuelve el token
+     */
     public String createToken(String username, List<String> roles, boolean recuerdame) {
         long now = System.currentTimeMillis();
         long exp = now + (recuerdame ? recuerdaExpiracion : defaultExpiracion);

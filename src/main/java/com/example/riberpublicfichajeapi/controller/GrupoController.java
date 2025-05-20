@@ -27,6 +27,11 @@ public class GrupoController {
         this.grupoService = grupoService;
     }
 
+    /**
+     * Obtiene todos los grupos.
+     *
+     * @return devuelve una lista de grupos
+     */
     @GetMapping("/")
     @Operation(summary = "Obtener todos los grupos", description = "Obtener una lista de todos los grupos")
     @ApiResponses(value = {
@@ -42,6 +47,11 @@ public class GrupoController {
         }
     }
 
+    /**
+     * Crea un grupo con los datos recibidos y asigna a los usuarios al grupo.
+     * @param crearActualizarGrupoDTO nombre y usuarios asignados al grupo
+     * @return devuelve el id, el nombre y los usuariosIds
+     */
     @PostMapping("/crearGrupo")
     @Operation(summary = "Crear grupo", description = "Crea un nuevo grupo y asigna usuarios a este grupo")
     @ApiResponses({
@@ -66,7 +76,13 @@ public class GrupoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(respuesta);
     }
 
-
+    /**
+     * Edita un grupo con la información obtenida, asigna y desasigna los usuarios que recibe.
+     *
+     * @param id identificador del grupo
+     * @param actualizarGrupoDTO nombre y usuarios recibidos
+     * @return devuelve el grupo entero
+     */
     @PutMapping("/editarGrupo/{id}")
     @Operation(summary = "Actualizar grupo", description = "Modifica nombre y usuarios de un grupo")
     @ApiResponses({
@@ -82,6 +98,12 @@ public class GrupoController {
         return ResponseEntity.ok(updated);
     }
 
+    /**
+     * Elimina un grupo por el id recibido, se asignan los usuarios de este grupo a "Sin Asignar"
+     *
+     * @param id identificador del grupo
+     * @return devuelve el mensaje
+     */
     @DeleteMapping("/eliminarGrupo/{id}")
     @Operation(summary = "Eliminar grupo", description = "Borra un grupo y reasigna sus usuarios al grupo 'Sin Asignar'")
     @ApiResponses({

@@ -1,6 +1,4 @@
 package com.example.riberpublicfichajeapi;
-
-//import com.example.riberrepublicfichajeapi.security.JwtAuthenticationFilter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

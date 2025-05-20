@@ -31,14 +31,33 @@ public class AusenciaService {
         this.horarioRepository = horarioRepository;
     }
 
+    /**
+     * Obtiene todas las ausencias.
+     *
+     * @return la lista de ausencias
+     */
     public List<Ausencia> getAusencias() {
         return ausenciaRepository.findAll();
     }
 
+    /**
+     * Comprueba si una ausencia existe de un usuario en una fecha.
+     *
+     * @param idUsuario identificador del usuario
+     * @param fecha fecha para identificar la ausencia
+     * @return devuelve true o false
+     */
     public boolean existeAusencia(int idUsuario, LocalDate fecha) {
         return ausenciaRepository.existsByUsuarioIdAndFecha(idUsuario, fecha);
     }
 
+    /**
+     * Crea una ausencia con los datos recibidos.
+     *
+     * @param idUsuario identificador del usuario
+     * @param crearAusenciaDTO datos para crearlo
+     * @return devuelve la ausencia creada
+     */
     public Ausencia crearAusencia(int idUsuario, CrearAusenciaDTO crearAusenciaDTO) {
         Usuario usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
@@ -55,6 +74,14 @@ public class AusenciaService {
         return ausenciaRepository.save(ausencia);
     }
 
+    /**
+     * Actualiza el estado de la ausencia.
+     *
+     * @param id identificador de la ausencia
+     * @param estado estado a editar
+     * @param detalles detalles si existen
+     * @return devuelve la ausencia creada
+     */
     public Ausencia actualizarAusencia(int id, Ausencia.Estado estado, String detalles) {
         Ausencia ausencia = ausenciaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Ausencia no encontrada: " + id));

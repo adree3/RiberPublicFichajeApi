@@ -35,6 +35,11 @@ public class SecurityConfig {
                 .build();
     }
 
+    /**
+     * Encargado de la seguridad, quien puede y quien no acceder.
+     *
+     * @return devuelve el HTTP con el filtro
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http

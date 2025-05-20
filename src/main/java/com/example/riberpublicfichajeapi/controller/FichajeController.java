@@ -32,6 +32,11 @@ public class FichajeController {
         this.usuarioService = usuarioService;
     }
 
+    /**
+     * Obtiene todos los fichajes.
+     *
+     * @return devuelve una lista con los fichajes.
+     */
     @GetMapping("/")
     @Operation(summary = "Obtener todos los fichajes", description = "Obtener una lista de todos los fichajes")
     @ApiResponses(value = {
@@ -47,6 +52,12 @@ public class FichajeController {
         }
     }
 
+    /**
+     * Obtiene los fichajes de un usuario específico.
+     *
+     * @param idUsuario identificador del usuario
+     * @return devuelve una lista de fichajes
+     */
     @GetMapping("/usuario/{idUsuario}")
     @Operation(summary = "Obtener fichajes por usuario", description = "Obtener todos los fichajes de un usuario por su ID")
     @ApiResponses(value = {
@@ -66,6 +77,12 @@ public class FichajeController {
         }
     }
 
+    /**
+     * Obtiene todas las horas generadas de hoy de un usuario.
+     *
+     * @param idUsuario identificador del usuario
+     * @return devuelve un string con el total de horas
+     */
     @GetMapping("/totalHorasHoy/{idUsuario}")
     @Operation(summary = "Obtiene el total de horas trabajadas de hoy", description = "Obtiene el total de horas trabajadas de hoy por el id usuario")
     @ApiResponses(value = {
@@ -86,7 +103,7 @@ public class FichajeController {
     /**
      * Abre(crea) o reabre si ya existia un fichaje cerrado en el día de hoy
      *
-     * @param idUsuario id del usuario
+     * @param idUsuario identificador del usuario
      * @return devuelve el fichaje
      */
     @PostMapping("/abrirFichaje/{idUsuario}")
@@ -107,8 +124,9 @@ public class FichajeController {
     }
 
     /**
-     * Cierra el fichaje que esta abierto del día de hoy
-     * @param idUsuario id del usuario
+     * Cierra el fichaje que está abierto del día de hoy
+     *
+     * @param idUsuario identificador del usuario
      * @return devuelve el fichaje
      */
     @PutMapping("/cerrarFichaje/{idUsuario}")

@@ -22,13 +22,16 @@ import java.util.List;
 public class HorarioController {
 
     private final HorarioService horarioService;
-    private final GrupoService grupoService;
 
-    public HorarioController(HorarioService horarioService, GrupoService grupoService) {
+    public HorarioController(HorarioService horarioService) {
         this.horarioService = horarioService;
-        this.grupoService = grupoService;
     }
 
+    /**
+     * Obtiene todos los horarios.
+     *
+     * @return devuelve una lista con los horarios
+     */
     @GetMapping("/")
     @Operation(summary = "Obtener todos los horarios", description = "Obtener una lista de todos los horarios")
     @ApiResponses(value = {
@@ -44,12 +47,30 @@ public class HorarioController {
         }
     }
 
+    /**
+     * Obtiene los horarios de un grupo.
+     *
+     * @param idGrupo identificador del grupo.
+     * @return devuelve la lista de horarios
+     */
     @GetMapping("/{idGrupo}/grupo")
-    @Operation(summary = "Obtener horarios de un grupo")
+    @Operation(summary = "Obtener horarios de un grupo", description = "Obtener los horarios de un grupo")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de horarios obteniados correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
+            @ApiResponse(responseCode = "404", description = "No se encontraron horarios")
+    })
     public List<Horario> getHorariosPorGrupo(@PathVariable int idGrupo) {
         return horarioService.getHorariosPorGrupo(idGrupo);
     }
 
+    /**
+     * Crea un nuevo horario con los datos recibidos.
+     *
+     * @param idGrupo identificador del grupo
+     * @param horarioDTO día y fecha de entrada y salida
+     * @return devuelve el horario creado
+     */
     @PostMapping("/nuevoHorario")
     @Operation(summary = "Crear un nuevo horario", description = "Crear un nuevo horario")
     @ApiResponses(value = {
@@ -65,8 +86,13 @@ public class HorarioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoHorario);
     }
 
-
-
+    /**
+     * Edita un horario por los datos recibidos.
+     *
+     * @param id identificador del horario
+     * @param editarHorarioDTO día, grupo al que está asignado y fecha de entrada y salida
+     * @return devuelve el horario editado
+     */
     @PutMapping("/editarHorario/{id}")
     @Operation(summary = "Modificar un horario", description = "Actualiza día, horas y grupo de un horario")
     @ApiResponses({
@@ -82,6 +108,12 @@ public class HorarioController {
         return ResponseEntity.ok(horarioeditado);
     }
 
+    /**
+     * Elimina un horario por el id recibido.
+     *
+     * @param id identificador del horario
+     * @return devuelve un mensaje
+     */
     @DeleteMapping("/eliminarHorario/{id}")
     @Operation(summary = "Eliminar un horario", description = "Elimina el horario con el ID recibido")
     @ApiResponses({

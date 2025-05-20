@@ -25,14 +25,17 @@ import java.util.Map;
 public class AusenciaController {
 
     private final AusenciaService ausenciaService;
-    private final UsuarioService usuarioService;
 
 
-    public AusenciaController(AusenciaService ausenciaService, UsuarioService usuarioService) {
+    public AusenciaController(AusenciaService ausenciaService) {
         this.ausenciaService = ausenciaService;
-        this.usuarioService = usuarioService;
     }
 
+    /**
+     * Obtiene todas las ausencias.
+     *
+     * @return devuelve un listado de ausencias
+     */
     @GetMapping("/")
     @Operation(summary = "Obtener todas las ausencias", description = "Obtener una lista de todas las ausencias")
     @ApiResponses(value = {
@@ -48,6 +51,13 @@ public class AusenciaController {
         }
     }
 
+    /**
+     * Devuelve un booleano, para saber existe una ausencia en el día indicado.
+     *
+     * @param usuarioId identificador del usuario
+     * @param fecha día de la ausencia a buscar
+     * @return devuelve true o false
+     */
     @GetMapping("/{usuarioId}/existe")
     @Operation(summary="Obtener ausencia de hoy para un usuario")
     public ResponseEntity<Boolean> existeAusencia(
@@ -57,6 +67,13 @@ public class AusenciaController {
         return ResponseEntity.ok(ausenciaService.existeAusencia(usuarioId, fecha));
     }
 
+    /**
+     * Crea una ausencia por los parametros recibidos.
+     *
+     * @param idUsuario identificador del usuario.
+     * @param crearAusenciaDTO datos para crear la ausencia
+     * @return devuelve la ausencia creada
+     */
     @PostMapping("/nuevaAusencia")
     @Operation(summary = "Crear una nueva auencia", description = "Crear una nueva ausencia")
     @ApiResponses(value = {
@@ -72,6 +89,14 @@ public class AusenciaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(creada);
     }
 
+    /**
+     * Edita una ausencia según el id de la ausencia.
+     * Solo se edita el estado.
+     *
+     * @param id identificador de la ausencia.
+     * @param ausenciaEditada json con el estado de la ausencia y detalles si existe
+     * @return devuelve la ausencia actualizada
+     */
     @PutMapping("/editarAusencia/{id}")
     @Operation(summary = "Editar una auencia", description = "Editar una ausencia")
     @ApiResponses(value = {
@@ -83,13 +108,19 @@ public class AusenciaController {
             @PathVariable int id,
             @RequestBody Map<String, Object> ausenciaEditada
     ) {
-        String estadoStr = (String) ausenciaEditada.get("estado");
-        Ausencia.Estado estado = Ausencia.Estado.valueOf(estadoStr);
+        String estadoString = (String) ausenciaEditada.get("estado");
+        Ausencia.Estado estado = Ausencia.Estado.valueOf(estadoString);
         String detalles = ausenciaEditada.containsKey("detalles") ? (String) ausenciaEditada.get("detalles") : null;
 
-        Ausencia actualizado = ausenciaService.actualizarAusencia(id, estado, detalles);
-        return ResponseEntity.ok(actualizado);
+        Ausencia ausencia = ausenciaService.actualizarAusencia(id, estado, detalles);
+        return ResponseEntity.ok(ausencia);
     }
+
+    /**
+     * Crea todas las ausencias que no estén ya generadas por unos requisitos.
+     *
+     * @return devuelve el código de información.
+     */
     @PostMapping("/generarAusencias")
     @Operation(summary = "Generar ausencias", description = "Generar ausencias por los fichajes")
     @ApiResponses(value = {

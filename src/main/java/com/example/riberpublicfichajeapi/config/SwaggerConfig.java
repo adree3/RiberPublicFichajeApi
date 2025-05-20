@@ -10,17 +10,18 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SwaggerConfig {
 
-    // Configuración de Swagger/OpenAPI
+    /**
+     * Configuración de Swagger sobre los metadatos del API
+     */
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .components(new Components())
-                .info(new Info().title("API RiberPepublicFichaje")
-                        .description("API de la aplicación de RiberPepublicFichaje")
+                .info(new Info().title("API RiberPublicFichaje")
+                        .description("API de la aplicación de RiberPublicFichaje")
                         .contact(new Contact()
-                                .name("Adrian")
-                                .email("adrianalonso200@gmail.com")
-                                .url("https://adrian.com"))
+                                .name("Adrian Alonso Perez")
+                                .email("adrianalonso200@gmail.com"))
                         .version("1.0"));
     }
 }

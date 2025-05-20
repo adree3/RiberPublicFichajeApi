@@ -17,6 +17,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         this.jwtProvider = provider;
     }
 
+    /**
+     * Se encarga de leer y validar el token y construir la autenticación del usuario.
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws ServletException, IOException {

@@ -52,6 +52,12 @@ public class GrupoService {
         return nuevoGrupo;
     }
 
+    /**
+     * Edita un grupo, el nombre y añade o elimina los usuarios para ese grupo.
+     * @param grupoId identificador del grupo
+     * @param actualizarGrupoDTO nombre y lista de usuarios.
+     * @return devuelve el grupo editado
+     */
     public Grupo actualizarGrupo(int grupoId, CrearActualizarGrupoDTO actualizarGrupoDTO) {
         // se coge el grupo con el id que se recibe
         Grupo grupo = grupoRepository.findById(grupoId)
@@ -89,6 +95,11 @@ public class GrupoService {
         return grupo;
     }
 
+    /**
+     * Elimina un grupo por su id.
+     *
+     * @param grupoId identificador del grupo
+     */
     public void eliminarGrupo(int grupoId) {
         Grupo grupoAEliminar = grupoRepository.findById(grupoId)
                 .orElseThrow(() -> new IllegalArgumentException("Grupo no encontrado: " + grupoId));
