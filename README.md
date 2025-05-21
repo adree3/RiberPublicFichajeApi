@@ -1,6 +1,6 @@
-# RiberPublicFichaje (API)
+# RiberPublicFichaje (APP)
 
-Aplicación multiplataforma, con la finalidad de registrar y administrar la jornada laboral de los trabajadores.
+### API REST para gesionar las consultas de la APP 
 
 ## 📄 Enlaces
 
