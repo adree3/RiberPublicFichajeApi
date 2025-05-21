@@ -9,6 +9,7 @@ import com.example.riberpublicfichajeapi.model.Usuario;
 import com.example.riberpublicfichajeapi.repository.GrupoRepository;
 import com.example.riberpublicfichajeapi.repository.HorarioRepository;
 import com.example.riberpublicfichajeapi.repository.UsuarioRepository;
+import com.example.riberpublicfichajeapi.excepciones.CredencialesInvalidasException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -159,7 +160,7 @@ public class UsuarioService {
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
         if (!passwordEncoder.matches(contrasenaActual, usuario.getContrasena())) {
-            throw new BadCredentialsException("Contraseña actual incorrecta");
+            throw new CredencialesInvalidasException("La contraseña actual no es correcta");
         }
         usuario.setContrasena(passwordEncoder.encode(nuevaContrasena));
         usuarioRepository.save(usuario);
