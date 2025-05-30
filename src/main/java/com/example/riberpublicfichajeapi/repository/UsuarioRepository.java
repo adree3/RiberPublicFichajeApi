@@ -15,6 +15,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     List<Usuario> findByEstado(Usuario.Estado estado);
 
+    List<Usuario> findByEstadoAndRol(Usuario.Estado estado, Usuario.Rol rol);
+
     List<Usuario> findByGrupo(Grupo grupo);
 
     List<Usuario> findByGrupoId(int grupoId);

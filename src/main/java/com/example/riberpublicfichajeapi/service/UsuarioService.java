@@ -57,6 +57,14 @@ public class UsuarioService {
         return usuarioRepository.findByEstado(Usuario.Estado.activo);
     }
 
+    /**
+     * Obtiene los empleados activos
+     *
+     * @return devuelve una lista de usuarios
+     */
+    public List<Usuario> getEmpleadosActivos() {
+        return usuarioRepository.findByEstadoAndRol(Usuario.Estado.activo, Usuario.Rol.empleado);
+    }
 
     /**
      * Obtiene el usuario por su id.

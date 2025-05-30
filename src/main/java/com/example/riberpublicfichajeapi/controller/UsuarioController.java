@@ -73,6 +73,22 @@ public class UsuarioController {
     }
 
     /**
+     * Devuelve todos los empleados activos.
+     *
+     * @return devuelve una lista de usuarios
+     */
+    @GetMapping("/empleadosActivos")
+    @Operation(summary = "Obtener todos los empleados activos", description = "Obtener una lista de todos los empleados")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de usuarios obteniados correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta"),
+            @ApiResponse(responseCode = "404", description = "No se encontraron usuarios")
+    })
+    public List<Usuario> getUsuariosEmpleadosActivos() {
+        return usuarioService.getEmpleadosActivos();
+    }
+
+    /**
      * Obtiene el horario de hoy para un usuario.
      *
      * @param idUsuario identificador del usuario

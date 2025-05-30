@@ -122,87 +122,95 @@ public class AusenciaService {
                     // Devuelvo la clave compuesta: (usuarioId, fecha)
                     return new AbstractMap.SimpleEntry<>(fichaje.getUsuario().getId(), fecha);
                 }));
+        // Se crean las ausencias hasta 30 dias atras
+        LocalDate diasAtras = LocalDate.now().minusDays(30);
+        LocalDate hasta = LocalDate.now();
+
         // por si se retrasa el usuario que no salte una ausencia
         Duration tolerancia = Duration.ofMinutes(20);
 
-        // Recorro porUsuarioFecha y voy cogiendo los datos
-        for (var entry : porUsuarioFecha.entrySet()) {
-            int usuarioId = entry.getKey().getKey();
-            LocalDate fecha = entry.getKey().getValue();
-            // en caso de que haya una ausencia para este dia, que salte al siguiente usuario.
-            if (ausenciaRepository.existsByUsuarioIdAndFecha(usuarioId, fecha)) {
-                continue;
-            }
-            List<Fichaje> fichajes = entry.getValue();
+        // Recorro todos los días del rango de fechas
+        for (LocalDate date = diasAtras; !date.isAfter(hasta); date = date.plusDays(1)) {
+            for (var entry : porUsuarioFecha.entrySet()) {
+                int usuarioId = entry.getKey().getKey();
+                LocalDate fecha = entry.getKey().getValue();
 
-            // comprobar si hay fechaHoraEntrada y cual es
-            LocalDateTime primeraFechaHoraEntrada= primeraFechaHora(fichajes);
-            // comprobar si hay fechaHoraSalida y cual es
-            LocalDateTime ultimaFechaHoraSalida= ultimaFechaHora(fichajes);
-
-            // compruebo si hay primeraFechaHoraEntrada y ultimaFechaHoraSalida
-            boolean faltaEntrada = primeraFechaHoraEntrada == null;
-            boolean faltaSalida = ultimaFechaHoraSalida == null;
-
-            // si hay tanto faltaEntrada como faltaSalida, calcula las horas trabajadas
-            Duration trabajadas = Duration.ZERO;
-            if (!faltaEntrada && !faltaSalida) {
-                trabajadas = Duration.between(primeraFechaHoraEntrada, ultimaFechaHoraSalida);
-            }
-
-            // Traduce el diaSemana a español
-            Horario.Dia diaSemana = switch (fecha.getDayOfWeek()) {
-                case MONDAY -> Horario.Dia.lunes;
-                case TUESDAY -> Horario.Dia.martes;
-                case WEDNESDAY -> Horario.Dia.miercoles;
-                case THURSDAY -> Horario.Dia.jueves;
-                case FRIDAY -> Horario.Dia.viernes;
-                case SATURDAY -> Horario.Dia.sabado;
-                case SUNDAY -> Horario.Dia.domingo;
-                default -> null;
-            };
-
-            // obtiene los horarios por el grupoid y el diaSemana (el grupoId lo puede coger del usuario ya que lo tiene definido)
-            Duration total = Duration.ZERO;
-            if (diaSemana != null) {
-                int grupoId = fichajes.get(0).getUsuario().getGrupo().getId();
-                List<Horario> horarios = horarioRepository.findByGrupoIdAndDia(grupoId, diaSemana);
-                // recorre cada horario y va sumando la diferencia entre entrada y salida en total
-                for (Horario horario : horarios) {
-                    LocalTime entrada = horario.getHoraEntrada();
-                    LocalTime salida = horario.getHoraSalida();
-                    total = total.plus(Duration.between(entrada, salida));
+                // Si ya existe una ausencia para este día y usuario, salto al siguiente
+                if (ausenciaRepository.existsByUsuarioIdAndFecha(usuarioId, fecha)) {
+                    continue;
                 }
-            }
-            // Comprueba si se ha usado el nfc en algun fichaje de ese dia del usuario
-            boolean todosUsaronNfc = fichajes.stream()
-                    .allMatch(Fichaje::isNfcUsado);
 
-            Usuario usuario = usuarioRepository.findById(usuarioId)
-                    .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + usuarioId));
+                List<Fichaje> fichajes = entry.getValue();
 
-            String detalles = "";
-            // Si es null la primeraFechaHoraEntrada
-            if (faltaEntrada) {
-                detalles = "Sin asignar la fecha de entrada";
-            }
-            // Si es null la ultimaFechaHoraSalida
-            if (faltaSalida) {
-                detalles = "Sin asignar la fecha de salida";
-            }
-            // si las horas totales son menores a las estimadas con la tolerancia
-            if (!total.isZero()) {
-                Duration faltante = total.minus(trabajadas);
-                if (faltante.compareTo(tolerancia) > 0) {
-                    detalles = "Horas trabajadas menores que las estimadas";
+                // Comprobar si hay fechaHoraEntrada y cuál es
+                LocalDateTime primeraFechaHoraEntrada = primeraFechaHora(fichajes);
+                // Comprobar si hay fechaHoraSalida y cuál es
+                LocalDateTime ultimaFechaHoraSalida = ultimaFechaHora(fichajes);
+
+                boolean faltaEntrada = primeraFechaHoraEntrada == null;
+                boolean faltaSalida = ultimaFechaHoraSalida == null;
+
+                // Calcular las horas trabajadas
+                Duration trabajadas = Duration.ZERO;
+                if (!faltaEntrada && !faltaSalida) {
+                    trabajadas = Duration.between(primeraFechaHoraEntrada, ultimaFechaHoraSalida);
                 }
-            }
-            // si no se ha usado el nfc
-            if (!todosUsaronNfc) {
-                detalles = "No se utilizo el nfc para fichar";
-            }
-            if (!detalles.isEmpty()) {
-                crearAusenciaDetalles(fecha, usuario, detalles);
+
+                // Traduce el día de la semana a español
+                Horario.Dia diaSemana = switch (fecha.getDayOfWeek()) {
+                    case MONDAY -> Horario.Dia.lunes;
+                    case TUESDAY -> Horario.Dia.martes;
+                    case WEDNESDAY -> Horario.Dia.miercoles;
+                    case THURSDAY -> Horario.Dia.jueves;
+                    case FRIDAY -> Horario.Dia.viernes;
+                    case SATURDAY -> Horario.Dia.sabado;
+                    case SUNDAY -> Horario.Dia.domingo;
+                    default -> null;
+                };
+
+                // Obtiene los horarios del grupo y día
+                Duration total = Duration.ZERO;
+                if (diaSemana != null) {
+                    int grupoId = fichajes.get(0).getUsuario().getGrupo().getId();
+                    List<Horario> horarios = horarioRepository.findByGrupoIdAndDia(grupoId, diaSemana);
+                    for (Horario horario : horarios) {
+                        LocalTime entrada = horario.getHoraEntrada();
+                        LocalTime salida = horario.getHoraSalida();
+                        total = total.plus(Duration.between(entrada, salida));
+                    }
+                }
+
+                // Comprobar si se ha usado el NFC en algún fichaje de ese día
+                boolean todosUsaronNfc = fichajes.stream()
+                        .allMatch(Fichaje::isNfcUsado);
+
+                Usuario usuario = usuarioRepository.findById(usuarioId)
+                        .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + usuarioId));
+
+                String detalles = "";
+                // Si falta la fecha de entrada
+                if (faltaEntrada) {
+                    detalles = "Sin asignar la fecha de entrada";
+                }
+                // Si falta la fecha de salida
+                if (faltaSalida) {
+                    detalles = "Sin asignar la fecha de salida";
+                }
+                // Si las horas trabajadas son menores a las estimadas con tolerancia
+                if (!total.isZero()) {
+                    Duration faltante = total.minus(trabajadas);
+                    if (faltante.compareTo(tolerancia) > 0) {
+                        detalles = "Horas trabajadas menores que las estimadas";
+                    }
+                }
+                // Si no se ha usado el NFC
+                if (!todosUsaronNfc) {
+                    detalles = "No se utilizó el nfc para fichar";
+                }
+
+                if (!detalles.isEmpty()) {
+                    crearAusenciaDetalles(fecha, usuario, detalles);
+                }
             }
         }
         // Generar ausencias para usuarios que no han fichado ningún día que su grupo debía trabajar hoy
