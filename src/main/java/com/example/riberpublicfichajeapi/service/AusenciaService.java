@@ -112,146 +112,108 @@ public class AusenciaService {
     public void generarAusenciasDesdeFichajes() {
         List<Fichaje> listaFichajes = fichajeRepository.findAll();
 
-        // agrupo la lista de fichajes por usuarioID y fecha del fichaje
-        Map<Map.Entry<Integer, LocalDate>, List<Fichaje>> porUsuarioFecha =
-                listaFichajes.stream().collect(Collectors.groupingBy(fichaje -> {
-                    // Cojo la fecha del día o por fechaHoraEntrada si existe o fechaHoraSalida
-                    LocalDate fecha = Optional.ofNullable(fichaje.getFechaHoraEntrada())
-                            .orElse(fichaje.getFechaHoraSalida())
+        // Agrupo por usuario y fecha exacta, todos los fichajes existentes
+        Map<String, List<Fichaje>> porUsuarioFecha = listaFichajes.stream()
+                .collect(Collectors.groupingBy(f -> {
+                    // Determino la fecha a partir de entrada/salida
+                    LocalDate ld = Optional.ofNullable(f.getFechaHoraEntrada())
+                            .orElse(f.getFechaHoraSalida())
                             .toLocalDate();
-                    // Devuelvo la clave compuesta: (usuarioId, fecha)
-                    return new AbstractMap.SimpleEntry<>(fichaje.getUsuario().getId(), fecha);
+                    // Clave compuesta: "usuarioId|yyyy-MM-dd"
+                    return f.getUsuario().getId() + "|" + ld.toString();
                 }));
         // Se crean las ausencias hasta 30 dias atras
-        LocalDate diasAtras = LocalDate.now().minusDays(30);
-        LocalDate hasta = LocalDate.now();
+        LocalDate hoy = LocalDate.now();
+        LocalDate inicio = hoy.minusDays(30);
+
+        Map<DayOfWeek, Horario.Dia> diaMap = Map.of(
+                DayOfWeek.MONDAY,    Horario.Dia.lunes,
+                DayOfWeek.TUESDAY,   Horario.Dia.martes,
+                DayOfWeek.WEDNESDAY, Horario.Dia.miercoles,
+                DayOfWeek.THURSDAY,  Horario.Dia.jueves,
+                DayOfWeek.FRIDAY,    Horario.Dia.viernes,
+                DayOfWeek.SATURDAY,  Horario.Dia.sabado,
+                DayOfWeek.SUNDAY,    Horario.Dia.domingo
+        );
+
+        // Obtengo todos los usuarios a revisar
+        List<Usuario> todosUsuarios = usuarioRepository.findByEstado(Usuario.Estado.activo);
 
         // por si se retrasa el usuario que no salte una ausencia
         Duration tolerancia = Duration.ofMinutes(20);
 
-        // Recorro todos los días del rango de fechas
-        for (LocalDate date = diasAtras; !date.isAfter(hasta); date = date.plusDays(1)) {
-            for (var entry : porUsuarioFecha.entrySet()) {
-                int usuarioId = entry.getKey().getKey();
-                LocalDate fecha = entry.getKey().getValue();
+        for (Usuario usuario : todosUsuarios) {
+            for (LocalDate fecha = inicio; !fecha.isAfter(hoy); fecha = fecha.plusDays(1)) {
+                // la Key para buscar fichajes: "usuarioId|2025-05-30"
+                String key = usuario.getId() + "|" + fecha.toString();
 
-                // Si ya existe una ausencia para este día y usuario, salto al siguiente
-                if (ausenciaRepository.existsByUsuarioIdAndFecha(usuarioId, fecha)) {
+                // Si ya existe ausencia para ese usuario y fecha, seguimos
+                boolean yaHayAusencia = ausenciaRepository.existsByUsuarioIdAndFecha(usuario.getId(), fecha);
+                if (yaHayAusencia) {
                     continue;
                 }
 
-                List<Fichaje> fichajes = entry.getValue();
+                // Obtengo la lista de fichajes de ese usuario en ese día
+                List<Fichaje> fichajesHoy = porUsuarioFecha.getOrDefault(key, Collections.emptyList());
 
-                // Comprobar si hay fechaHoraEntrada y cuál es
-                LocalDateTime primeraFechaHoraEntrada = primeraFechaHora(fichajes);
-                // Comprobar si hay fechaHoraSalida y cuál es
-                LocalDateTime ultimaFechaHoraSalida = ultimaFechaHora(fichajes);
+                // Si no hay ni un fichaje, genero ausencia
+                if (fichajesHoy.isEmpty()) {
+                    // Comprobamos en el horario de su grupo si tenía que trabajar
+                    DayOfWeek dayOfWeek = fecha.getDayOfWeek();
+                    Horario.Dia diaEnum = diaMap.get(dayOfWeek);
+                    if (diaEnum != null) {
+                        int grupoId = usuario.getGrupo().getId();
+                        List<Horario> horariosDelDia = horarioRepository.findByGrupoIdAndDia(grupoId, diaEnum);
+                        if (!horariosDelDia.isEmpty()) {
+                            // Si su grupo tenía un horario, se genera la ausencia
+                            crearAusenciaDetalles(fecha, usuario, "No registró ningún fichaje");
+                        }
+                    }
+                    continue;
+                }
 
-                boolean faltaEntrada = primeraFechaHoraEntrada == null;
-                boolean faltaSalida = ultimaFechaHoraSalida == null;
+                // Si sí hay fichajes, reviso entrada/salida/horas/NFC
+                LocalDateTime primeraEntrada = primeraFechaHora(fichajesHoy);
+                LocalDateTime ultimaSalida = ultimaFechaHora(fichajesHoy);
 
-                // Calcular las horas trabajadas
+                boolean faltaEntrada = (primeraEntrada == null);
+                boolean faltaSalida  = (ultimaSalida == null);
+
+                // Calcular horas trabajadas
                 Duration trabajadas = Duration.ZERO;
                 if (!faltaEntrada && !faltaSalida) {
-                    trabajadas = Duration.between(primeraFechaHoraEntrada, ultimaFechaHoraSalida);
+                    trabajadas = Duration.between(primeraEntrada, ultimaSalida);
                 }
 
-                // Traduce el día de la semana a español
-                Horario.Dia diaSemana = switch (fecha.getDayOfWeek()) {
-                    case MONDAY -> Horario.Dia.lunes;
-                    case TUESDAY -> Horario.Dia.martes;
-                    case WEDNESDAY -> Horario.Dia.miercoles;
-                    case THURSDAY -> Horario.Dia.jueves;
-                    case FRIDAY -> Horario.Dia.viernes;
-                    case SATURDAY -> Horario.Dia.sabado;
-                    case SUNDAY -> Horario.Dia.domingo;
-                    default -> null;
-                };
+                // Determinar horas estimadas a trabajar según el día de la semana
+                DayOfWeek dow = fecha.getDayOfWeek();
+                Horario.Dia diaEnum = diaMap.get(dow);
 
-                // Obtiene los horarios del grupo y día
-                Duration total = Duration.ZERO;
-                if (diaSemana != null) {
-                    int grupoId = fichajes.get(0).getUsuario().getGrupo().getId();
-                    List<Horario> horarios = horarioRepository.findByGrupoIdAndDia(grupoId, diaSemana);
-                    for (Horario horario : horarios) {
-                        LocalTime entrada = horario.getHoraEntrada();
-                        LocalTime salida = horario.getHoraSalida();
-                        total = total.plus(Duration.between(entrada, salida));
+                Duration estimado = Duration.ZERO;
+                if (diaEnum != null) {
+                    int grupoId = usuario.getGrupo().getId();
+                    List<Horario> horarios = horarioRepository.findByGrupoIdAndDia(grupoId, diaEnum);
+                    for (Horario h : horarios) {
+                        estimado = estimado.plus(Duration.between(h.getHoraEntrada(), h.getHoraSalida()));
                     }
                 }
 
-                // Comprobar si se ha usado el NFC en algún fichaje de ese día
-                boolean todosUsaronNfc = fichajes.stream()
-                        .allMatch(Fichaje::isNfcUsado);
-
-                Usuario usuario = usuarioRepository.findById(usuarioId)
-                        .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + usuarioId));
+                // Comprobar NFC
+                boolean todosUsaronNfc = fichajesHoy.stream().allMatch(Fichaje::isNfcUsado);
 
                 String detalles = "";
-                // Si falta la fecha de entrada
                 if (faltaEntrada) {
                     detalles = "Sin asignar la fecha de entrada";
-                }
-                // Si falta la fecha de salida
-                if (faltaSalida) {
+                } else if (faltaSalida) {
                     detalles = "Sin asignar la fecha de salida";
-                }
-                // Si las horas trabajadas son menores a las estimadas con tolerancia
-                if (!total.isZero()) {
-                    Duration faltante = total.minus(trabajadas);
-                    if (faltante.compareTo(tolerancia) > 0) {
-                        detalles = "Horas trabajadas menores que las estimadas";
-                    }
-                }
-                // Si no se ha usado el NFC
-                if (!todosUsaronNfc) {
+                } else if (!estimado.isZero() && estimado.minus(trabajadas).compareTo(tolerancia) > 0) {
+                    detalles = "Horas trabajadas menores que las estimadas";
+                } else if (!todosUsaronNfc) {
                     detalles = "No se utilizó el nfc para fichar";
                 }
 
                 if (!detalles.isEmpty()) {
                     crearAusenciaDetalles(fecha, usuario, detalles);
-                }
-            }
-        }
-        // Generar ausencias para usuarios que no han fichado ningún día que su grupo debía trabajar hoy
-        LocalDate hoy = LocalDate.now();
-        DayOfWeek dowHoy = hoy.getDayOfWeek();
-
-        // Mapeo de los dias de la semana de Java a tu enum Horario.Dia
-        Map<Horario.Dia, DayOfWeek> diaMap = Map.of(
-                Horario.Dia.lunes, DayOfWeek.MONDAY,
-                Horario.Dia.martes, DayOfWeek.TUESDAY,
-                Horario.Dia.miercoles, DayOfWeek.WEDNESDAY,
-                Horario.Dia.jueves, DayOfWeek.THURSDAY,
-                Horario.Dia.viernes, DayOfWeek.FRIDAY,
-                Horario.Dia.sabado, DayOfWeek.SATURDAY,
-                Horario.Dia.domingo, DayOfWeek.SUNDAY
-        );
-        Horario.Dia diaEnumHoy = diaMap.entrySet().stream()
-                .filter(e -> e.getValue() == dowHoy)
-                .map(Map.Entry::getKey)
-                .findFirst()
-                .orElse(null);
-
-        if (diaEnumHoy != null) {
-            // Obtengo todos los horarios que existan para este día
-            List<Horario> horariosHoy = horarioRepository.findByDia(diaEnumHoy);
-            for (Horario horario : horariosHoy) {
-                // Todos los usuarios de ese grupo
-                List<Usuario> usuariosGrupo = usuarioRepository.findByGrupoId(horario.getGrupo().getId());
-                for (Usuario usuario : usuariosGrupo) {
-                    // Si ya existe ausencia hoy, salto
-                    if (ausenciaRepository.existsByUsuarioIdAndFecha(usuario.getId(), hoy)) {
-                        continue;
-                    }
-                    // Si NO hay ningún fichaje hoy para ese usuario
-                    LocalDateTime inicio = hoy.atStartOfDay();
-                    LocalDateTime fin    = hoy.plusDays(1).atStartOfDay().minusNanos(1);
-                    boolean fichoHoy = fichajeRepository
-                            .existsByUsuarioIdAndFechaHoraEntradaBetween(usuario.getId(), inicio, fin);
-                    if (!fichoHoy) {
-                        crearAusenciaDetalles(hoy, usuario, "No registró ningún fichaje");
-                    }
                 }
             }
         }
