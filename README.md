@@ -1,4 +1,4 @@
-# RiberPublicFichaje (APP)
+# RiberPublicFichaje (API)
 
 ### API REST para gesionar las consultas de la APP 
 
